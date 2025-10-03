@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <title>Supreme Strategic Campaign Simulator (Iraq)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Your existing CSS styles remain the same */
+        /* Custom styles: Dynamic Propaganda-Themed Aesthetics */
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 70%, #0f172a 100%);
@@ -17,8 +17,19 @@
             color: #f8fafc;
             padding-bottom: 70px;
             overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
         }
 
+        /* Prevent zoom on double-tap */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Propaganda Button Style - Dynamic and inviting */
         #tapButton {
             width: 220px;
             height: 220px;
@@ -34,6 +45,8 @@
             position: relative;
             z-index: 10;
             animation: pulse-shadow 2s infinite alternate;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         @keyframes pulse-shadow {
@@ -47,6 +60,7 @@
             animation: none;
         }
 
+        /* Floating text feedback */
         .tap-feedback {
             position: absolute;
             font-size: 1.8rem;
@@ -56,12 +70,28 @@
             pointer-events: none;
             animation: floatup 0.9s ease-out forwards;
             white-space: nowrap;
+            z-index: 100;
         }
         @keyframes floatup {
             0% { transform: translateY(0) scale(1); opacity: 1; }
             100% { transform: translateY(-70px) scale(0.8); opacity: 0; }
         }
 
+        /* Enhanced tap effects */
+        .tap-ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, transparent 70%);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+            z-index: 5;
+        }
+        @keyframes ripple {
+            to { transform: scale(4); opacity: 0; }
+        }
+
+        /* General Card styles */
         .card-item {
             background: #1e293b;
             border: 1px solid #475569;
@@ -73,6 +103,13 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.7);
         }
         
+        /* Active card glow effect */
+        .card-active {
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.6);
+            border-color: #22c55e;
+        }
+        
+        /* Nav Bar */
         .nav-bar {
             box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.8);
             background-color: #0f172a;
@@ -96,6 +133,33 @@
             background: #1e293b;
             border-radius: 0.75rem;
             box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Auto-tap progress bar */
+        .auto-tap-progress {
+            width: 100%;
+            height: 6px;
+            background: #374151;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        .auto-tap-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+
+        /* Critical tap animation */
+        @keyframes criticalTap {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        .critical-tap {
+            animation: criticalTap 0.4s ease;
+            color: #fbbf24 !important;
         }
     </style>
 </head>
@@ -127,10 +191,27 @@
 
     <main class="w-full flex-grow">
         <div id="tap" class="tab-content flex flex-col items-center">
+            <!-- Auto-tap indicator -->
+            <div id="autoTapIndicator" class="w-full max-w-sm mb-4 p-3 bg-slate-800/80 rounded-xl border border-green-500/50 hidden">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-green-400 font-bold">🤖 Auto-Tap Active</span>
+                    <span id="autoTapTimer" class="text-gray-300">30s</span>
+                </div>
+                <div class="auto-tap-progress">
+                    <div id="autoTapProgress" class="auto-tap-fill" style="width: 100%"></div>
+                </div>
+            </div>
+            
             <div class="relative mb-8 mt-4">
                 <button id="tapButton" class="rounded-full flex flex-col justify-center items-center">
                     Tap to<br/>Fund<br/><span class="text-3xl">+1</span>
                 </button>
+            </div>
+            
+            <!-- Active Cards Bonus Display -->
+            <div id="activeCardsBonus" class="w-full max-w-sm mb-4 p-3 bg-slate-800/80 rounded-xl border border-blue-500/50 hidden">
+                <h4 class="text-blue-400 font-bold text-sm mb-2">🎴 Active Cards Bonus</h4>
+                <div id="activeCardsList" class="text-xs text-gray-300 space-y-1"></div>
             </div>
             
             <div class="w-full p-4 bg-slate-800/80 rounded-xl shadow-xl border border-slate-700/50">
@@ -202,12 +283,17 @@
     </nav>
 
     <script>
-        // SIMPLIFIED VERSION - Works without Firebase
+        // ENHANCED CAMPAIGN SIMULATOR SCRIPT
         // Base Game Constants
         const TAPS_PER_CARD_DROP_BASE = 10;
         const DAILY_GOAL = 100;
         const DAILY_REWARD_COINS = 5000;
         const DAILY_REWARD_TOKENS = 1;
+        const TCI_SCALING = {
+            COINS: 10000,
+            CARD_LEVEL: 10,
+            PARTY_LEVEL: 50
+        };
 
         // Iraqi Political Party Data
         const INITIAL_PARTY_DATA = {
@@ -218,13 +304,88 @@
             p5: { name: "مستقلون/تشرين (Tishreen/Independents)", level: 1, xp: 0, multiplier: 1.0, logo: '✊', color: 'bg-purple-700' }
         };
 
-        // Candidate pool
+        // Enhanced Candidate pool with special abilities
         const CANDIDATE_POOL = [
-            { id: 1, name: "مصطفى العبادي (Mustafa Al-Abadi)", campaign: "مكافحة الفساد", baseBonus: 1, bid: 1000, maxLevel: 5, party: INITIAL_PARTY_DATA.p1.name, logoColor: "text-red-500", partyId: 'p1', policy: "Financial and administrative reform.", approval: 75, logo: '💰' },
-            { id: 2, name: "فاطمة الجبوري (Fatima Al-Jubouri)", campaign: "خدمات البنية التحتية", baseBonus: 2, bid: 5000, maxLevel: 10, party: INITIAL_PARTY_DATA.p4.name, logoColor: "text-blue-500", partyId: 'p4', policy: "Improved electricity and water access.", approval: 88, logo: '⚡' },
-            { id: 3, name: "آلان أحمد (Alan Ahmed)", campaign: "اقتصاد الإقليم", baseBonus: 3, bid: 15000, maxLevel: 15, party: INITIAL_PARTY_DATA.p3.name, logoColor: "text-yellow-500", partyId: 'p3', policy: "Fair share of federal oil and gas revenues.", approval: 65, logo: '⛽' },
-            { id: 4, name: "حيدر الموسوي (Haider Al-Mousawi)", campaign: "الأمن القومي", baseBonus: 5, bid: 30000, maxLevel: 20, party: INITIAL_PARTY_DATA.p2.name, logoColor: "text-green-500", partyId: 'p2', policy: "Strengthening border defense and security forces.", approval: 92, logo: '⚔️' },
-            { id: 5, name: "نور الصراف (Noor Al-Sarraf)", campaign: "الإصلاح المدني", baseBonus: 10, bid: 60000, maxLevel: 25, party: INITIAL_PARTY_DATA.p5.name, logoColor: "text-purple-500", partyId: 'p5', policy: "Push for judicial and electoral independence.", approval: 55, logo: '📜' }
+            { 
+                id: 1, 
+                name: "مصطفى العبادي (Mustafa Al-Abadi)", 
+                campaign: "مكافحة الفساد", 
+                baseBonus: 1, 
+                bid: 1000, 
+                maxLevel: 5, 
+                party: INITIAL_PARTY_DATA.p1.name, 
+                logoColor: "text-red-500", 
+                partyId: 'p1', 
+                policy: "Financial and administrative reform.", 
+                approval: 75, 
+                logo: '💰',
+                specialAbility: "Critical Tap: 5% chance for 3x coins",
+                abilityType: "critical"
+            },
+            { 
+                id: 2, 
+                name: "فاطمة الجبوري (Fatima Al-Jubouri)", 
+                campaign: "خدمات البنية التحتية", 
+                baseBonus: 2, 
+                bid: 5000, 
+                maxLevel: 10, 
+                party: INITIAL_PARTY_DATA.p4.name, 
+                logoColor: "text-blue-500", 
+                partyId: 'p4', 
+                policy: "Improved electricity and water access.", 
+                approval: 88, 
+                logo: '⚡',
+                specialAbility: "Auto-Tap: Generates taps every 5 seconds",
+                abilityType: "autoTap"
+            },
+            { 
+                id: 3, 
+                name: "آلان أحمد (Alan Ahmed)", 
+                campaign: "اقتصاد الإقليم", 
+                baseBonus: 3, 
+                bid: 15000, 
+                maxLevel: 15, 
+                party: INITIAL_PARTY_DATA.p3.name, 
+                logoColor: "text-yellow-500", 
+                partyId: 'p3', 
+                policy: "Fair share of federal oil and gas revenues.", 
+                approval: 65, 
+                logo: '⛽',
+                specialAbility: "Tap Storm: 30 seconds of rapid tapping",
+                abilityType: "tapStorm"
+            },
+            { 
+                id: 4, 
+                name: "حيدر الموسوي (Haider Al-Mousawi)", 
+                campaign: "الأمن القومي", 
+                baseBonus: 5, 
+                bid: 30000, 
+                maxLevel: 20, 
+                party: INITIAL_PARTY_DATA.p2.name, 
+                logoColor: "text-green-500", 
+                partyId: 'p2', 
+                policy: "Strengthening border defense and security forces.", 
+                approval: 92, 
+                logo: '⚔️',
+                specialAbility: "Double Rewards: 2x daily goal rewards",
+                abilityType: "doubleRewards"
+            },
+            { 
+                id: 5, 
+                name: "نور الصراف (Noor Al-Sarraf)", 
+                campaign: "الإصلاح المدني", 
+                baseBonus: 10, 
+                bid: 60000, 
+                maxLevel: 25, 
+                party: INITIAL_PARTY_DATA.p5.name, 
+                logoColor: "text-purple-500", 
+                partyId: 'p5', 
+                policy: "Push for judicial and electoral independence.", 
+                approval: 55, 
+                logo: '📜',
+                specialAbility: "Party Boost: +50% to all party multipliers",
+                abilityType: "partyBoost"
+            }
         ];
 
         // Game State
@@ -245,11 +406,17 @@
             userCards: [],
             parties: {...INITIAL_PARTY_DATA},
             unclaimedCards: [],
-            lastDailyRewardDate: null
+            lastDailyRewardDate: null,
+            activeCards: [], // Track activated cards
+            autoTapActive: false,
+            autoTapEndTime: 0,
+            tapStormActive: false,
+            tapStormEndTime: 0
         };
 
         // DOM elements
         let coinCounter, tokenCounter, tapButton, cardsContainer, loadingIndicator, messageBox;
+        let autoTapInterval, tapStormInterval;
 
         // Utility functions
         function showMessage(text, type = 'info') {
@@ -269,17 +436,33 @@
             return num.toLocaleString();
         }
 
-        function createTapFeedback(value, x, y) {
+        function createTapFeedback(value, x, y, isCritical = false) {
             const feedback = document.createElement('div');
-            feedback.className = 'tap-feedback';
-            feedback.textContent = `+${value}`;
+            feedback.className = `tap-feedback ${isCritical ? 'critical-tap' : ''}`;
+            feedback.textContent = `+${value}${isCritical ? ' ✨' : ''}`;
             feedback.style.left = `${x}px`;
             feedback.style.top = `${y}px`;
+            feedback.style.fontSize = isCritical ? '2.2rem' : '1.8rem';
+            feedback.style.color = isCritical ? '#fbbf24' : '#fcd34d';
             document.body.appendChild(feedback);
 
             setTimeout(() => {
                 feedback.remove();
             }, 900);
+        }
+
+        function createRippleEffect(x, y) {
+            const ripple = document.createElement('div');
+            ripple.className = 'tap-ripple';
+            ripple.style.left = `${x - 20}px`;
+            ripple.style.top = `${y - 20}px`;
+            ripple.style.width = '40px';
+            ripple.style.height = '40px';
+            document.body.appendChild(ripple);
+
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
         }
 
         function getRandomCandidate() {
@@ -293,23 +476,48 @@
                     return { 
                         id: CANDIDATE_POOL[i].id, 
                         level: 1, 
-                        uniqueId: Date.now() + Math.random(), // Simple ID generation
-                        name: CANDIDATE_POOL[i].name 
+                        uniqueId: Date.now() + Math.random(),
+                        name: CANDIDATE_POOL[i].name,
+                        activated: false
                     };
                 }
             }
-            return { id: CANDIDATE_POOL[0].id, level: 1, uniqueId: Date.now(), name: CANDIDATE_POOL[0].name };
+            return { 
+                id: CANDIDATE_POOL[0].id, 
+                level: 1, 
+                uniqueId: Date.now(), 
+                name: CANDIDATE_POOL[0].name,
+                activated: false 
+            };
         }
 
-        // Core game functions
+        // Enhanced tap handling with special abilities
         function handleTap(event) {
-            const tapValue = gameState.tapPower;
+            // Prevent default behaviors that cause zooming
+            event.preventDefault();
+            event.stopPropagation();
+            
+            let tapValue = gameState.tapPower;
+            let isCritical = false;
+            
+            // Check for critical tap from activated cards
+            const criticalCard = gameState.activeCards.find(active => {
+                const baseCard = CANDIDATE_POOL.find(c => c.id === active.id);
+                return baseCard && baseCard.abilityType === 'critical';
+            });
+            
+            if (criticalCard && Math.random() < 0.05) { // 5% chance for critical
+                tapValue *= 3;
+                isCritical = true;
+            }
             
             // UI feedback
             const rect = tapButton.getBoundingClientRect();
-            const x = event.clientX - rect.left + (rect.width / 2);
-            const y = event.clientY - rect.top + (rect.height / 2);
-            createTapFeedback(tapValue, rect.left + x - 20, rect.top + y - 20);
+            const x = event.clientX || (event.touches ? event.touches[0].clientX : 0);
+            const y = event.clientY || (event.touches ? event.touches[0].clientY : 0);
+            
+            createTapFeedback(tapValue, x, y, isCritical);
+            createRippleEffect(x, y);
             
             // Update game state
             gameState.coins += tapValue;
@@ -327,16 +535,183 @@
             // Check for daily goal
             const today = new Date().toISOString().split('T')[0];
             if (gameState.dailyTaps === DAILY_GOAL && gameState.lastDailyRewardDate !== today) {
-                gameState.coins += DAILY_REWARD_COINS;
-                gameState.influenceTokens += DAILY_REWARD_TOKENS;
-                gameState.totalLifetimeCoins += DAILY_REWARD_COINS;
+                let rewardMultiplier = 1;
+                
+                // Check for double rewards ability
+                const doubleRewardsCard = gameState.activeCards.find(active => {
+                    const baseCard = CANDIDATE_POOL.find(c => c.id === active.id);
+                    return baseCard && baseCard.abilityType === 'doubleRewards';
+                });
+                
+                if (doubleRewardsCard) {
+                    rewardMultiplier = 2;
+                }
+                
+                const finalCoins = DAILY_REWARD_COINS * rewardMultiplier;
+                const finalTokens = DAILY_REWARD_TOKENS * rewardMultiplier;
+                
+                gameState.coins += finalCoins;
+                gameState.influenceTokens += finalTokens;
+                gameState.totalLifetimeCoins += finalCoins;
                 gameState.lastDailyRewardDate = today;
-                showMessage(`🎉 Daily Influence Goal Met! +${formatNumber(DAILY_REWARD_COINS)} 💰 & +${DAILY_REWARD_TOKENS} 💎`, 'success');
+                
+                showMessage(`🎉 Daily Influence Goal Met! +${formatNumber(finalCoins)} 💰 & +${finalTokens} 💎${rewardMultiplier > 1 ? ' (2x Bonus!)' : ''}`, 'success');
             }
             
             // Save and update UI
             saveGameState();
             updateUI();
+            
+            // Submit to leaderboard every 20 taps
+            if (gameState.tapCount % 20 === 0) {
+                calculateAndSaveTCI();
+            }
+        }
+
+        // Enhanced card activation system
+        function activateCard(e) {
+            const uniqueId = e.currentTarget.dataset.uniqueId;
+            const cardIndex = gameState.userCards.findIndex(c => c.uniqueId == uniqueId);
+            
+            if (cardIndex === -1) {
+                showMessage("Card not found in collection.", 'error');
+                return;
+            }
+            
+            const cardToActivate = gameState.userCards[cardIndex];
+            const baseCard = CANDIDATE_POOL.find(c => c.id === cardToActivate.id);
+            
+            if (!baseCard) {
+                showMessage("Base candidate data missing.", 'error');
+                return;
+            }
+            
+            // Toggle activation
+            cardToActivate.activated = !cardToActivate.activated;
+            
+            if (cardToActivate.activated) {
+                // Add to active cards
+                if (!gameState.activeCards.find(ac => ac.uniqueId === cardToActivate.uniqueId)) {
+                    gameState.activeCards.push({...cardToActivate});
+                }
+                
+                // Activate special ability
+                activateSpecialAbility(baseCard, cardToActivate);
+                showMessage(`🎴 ${baseCard.name} activated! ${baseCard.specialAbility}`, 'success');
+            } else {
+                // Remove from active cards
+                gameState.activeCards = gameState.activeCards.filter(ac => ac.uniqueId !== cardToActivate.uniqueId);
+                
+                // Deactivate special ability
+                deactivateSpecialAbility(baseCard);
+                showMessage(`🎴 ${baseCard.name} deactivated`, 'info');
+            }
+            
+            saveGameState();
+            updateUI();
+            renderCardsSection();
+        }
+
+        function activateSpecialAbility(baseCard, card) {
+            switch(baseCard.abilityType) {
+                case 'autoTap':
+                    startAutoTap(30); // 30 seconds of auto-tap
+                    break;
+                case 'tapStorm':
+                    startTapStorm(30); // 30 seconds of tap storm
+                    break;
+                case 'partyBoost':
+                    // Party boost is handled in the tap power calculation
+                    break;
+                // critical and doubleRewards are handled in their respective functions
+            }
+        }
+
+        function deactivateSpecialAbility(baseCard) {
+            switch(baseCard.abilityType) {
+                case 'autoTap':
+                    stopAutoTap();
+                    break;
+                case 'tapStorm':
+                    stopTapStorm();
+                    break;
+                // Other abilities don't need cleanup
+            }
+        }
+
+        function startAutoTap(duration) {
+            if (gameState.autoTapActive) return;
+            
+            gameState.autoTapActive = true;
+            gameState.autoTapEndTime = Date.now() + (duration * 1000);
+            
+            const indicator = document.getElementById('autoTapIndicator');
+            const progress = document.getElementById('autoTapProgress');
+            const timer = document.getElementById('autoTapTimer');
+            
+            if (indicator) indicator.classList.remove('hidden');
+            
+            autoTapInterval = setInterval(() => {
+                if (Date.now() >= gameState.autoTapEndTime) {
+                    stopAutoTap();
+                    return;
+                }
+                
+                // Simulate a tap
+                const fakeEvent = { clientX: window.innerWidth / 2, clientY: window.innerHeight / 2 };
+                handleTap(fakeEvent);
+                
+                // Update UI
+                const remaining = Math.ceil((gameState.autoTapEndTime - Date.now()) / 1000);
+                if (timer) timer.textContent = `${remaining}s`;
+                if (progress) {
+                    const percent = (remaining / duration) * 100;
+                    progress.style.width = `${percent}%`;
+                }
+                
+            }, 1000); // Auto-tap every second
+        }
+
+        function stopAutoTap() {
+            gameState.autoTapActive = false;
+            clearInterval(autoTapInterval);
+            
+            const indicator = document.getElementById('autoTapIndicator');
+            if (indicator) indicator.classList.add('hidden');
+            
+            showMessage("Auto-tap session ended", 'info');
+        }
+
+        function startTapStorm(duration) {
+            if (gameState.tapStormActive) return;
+            
+            gameState.tapStormActive = true;
+            gameState.tapStormEndTime = Date.now() + (duration * 1000);
+            
+            tapStormInterval = setInterval(() => {
+                if (Date.now() >= gameState.tapStormEndTime) {
+                    stopTapStorm();
+                    return;
+                }
+                
+                // Rapid taps during storm
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => {
+                        const fakeEvent = { 
+                            clientX: window.innerWidth / 2 + (Math.random() - 0.5) * 100, 
+                            clientY: window.innerHeight / 2 + (Math.random() - 0.5) * 100 
+                        };
+                        handleTap(fakeEvent);
+                    }, i * 100);
+                }
+                
+            }, 500); // Storm taps every 500ms
+        }
+
+        function stopTapStorm() {
+            gameState.tapStormActive = false;
+            clearInterval(tapStormInterval);
+            showMessage("Tap storm ended", 'info');
         }
 
         function upgradeCard(e) {
@@ -375,12 +750,7 @@
             gameState.userCards[cardIndex].level = nextLevel;
             
             // Update card bonus sum and tap power
-            gameState.cardBonusSum = gameState.userCards.reduce((sum, card) => {
-                const baseCard = CANDIDATE_POOL.find(c => c.id === card.id);
-                return baseCard ? sum + (baseCard.baseBonus * card.level) : sum;
-            }, 0);
-            
-            gameState.tapPower = Math.ceil((1 * gameState.basePowerMultiplier + gameState.cardBonusSum) * gameState.partyMultiplier);
+            updateTapPower();
             
             showMessage(`Card upgraded to Level ${nextLevel}!`, 'success');
             saveGameState();
@@ -390,6 +760,29 @@
             if (document.querySelector('.nav-item.active').dataset.tab === 'cards') {
                 renderCardsSection();
             }
+        }
+
+        function updateTapPower() {
+            // Calculate card bonus sum
+            gameState.cardBonusSum = gameState.userCards.reduce((sum, card) => {
+                const baseCard = CANDIDATE_POOL.find(c => c.id === card.id);
+                return baseCard ? sum + (baseCard.baseBonus * card.level) : sum;
+            }, 0);
+            
+            // Calculate party multiplier with boosts
+            let effectivePartyMultiplier = gameState.partyMultiplier + (gameState.partyMultiplierBonus - 1.0);
+            
+            // Apply party boost from activated cards
+            const partyBoostCard = gameState.activeCards.find(active => {
+                const baseCard = CANDIDATE_POOL.find(c => c.id === active.id);
+                return baseCard && baseCard.abilityType === 'partyBoost';
+            });
+            
+            if (partyBoostCard) {
+                effectivePartyMultiplier *= 1.5; // 50% boost
+            }
+            
+            gameState.tapPower = Math.ceil((1 * gameState.basePowerMultiplier + gameState.cardBonusSum) * effectivePartyMultiplier);
         }
 
         function claimCard(e) {
@@ -415,7 +808,7 @@
             }
         }
 
-        // UI rendering functions
+        // Enhanced UI rendering functions
         function updateUI() {
             if (!coinCounter || !tokenCounter) return;
 
@@ -449,6 +842,9 @@
 
             dailyProgress.style.width = `${progressPercent}%`;
 
+            // Update active cards bonus display
+            updateActiveCardsDisplay();
+
             // Unclaimed Card Button Update
             const unclaimedCount = gameState.unclaimedCards.length;
             const cardNotif = document.getElementById('cardNotif');
@@ -457,6 +853,30 @@
                 cardNotif.textContent = unclaimedCount;
             } else {
                 cardNotif.classList.add('hidden');
+            }
+        }
+
+        function updateActiveCardsDisplay() {
+            const activeCardsBonus = document.getElementById('activeCardsBonus');
+            const activeCardsList = document.getElementById('activeCardsList');
+            
+            if (gameState.activeCards.length > 0) {
+                activeCardsBonus.classList.remove('hidden');
+                
+                let html = '';
+                gameState.activeCards.forEach(activeCard => {
+                    const baseCard = CANDIDATE_POOL.find(c => c.id === activeCard.id);
+                    if (baseCard) {
+                        html += `<div class="flex justify-between">
+                            <span>${baseCard.logo} ${baseCard.name}</span>
+                            <span class="text-green-400">${baseCard.specialAbility}</span>
+                        </div>`;
+                    }
+                });
+                
+                activeCardsList.innerHTML = html;
+            } else {
+                activeCardsBonus.classList.add('hidden');
             }
         }
 
@@ -506,9 +926,11 @@
                     const isMaxLevel = card.level >= baseCard.maxLevel;
                     const upgradeCost = isMaxLevel ? 'MAX' : formatNumber((card.level + 1) * 1000 + (baseCard.bid / 100));
                     const upgradeText = isMaxLevel ? 'MAX LEVEL' : `Upgrade (${upgradeCost} 💰)`;
+                    const isActive = card.activated;
+                    const cardClass = isActive ? 'card-active' : '';
                     
                     html += `
-                        <div class="card-item p-4 rounded-xl ${baseCard.logoColor}">
+                        <div class="card-item p-4 rounded-xl ${baseCard.logoColor} ${cardClass}">
                             <div class="flex justify-between items-center mb-2">
                                 <h4 class="font-bold text-lg">${baseCard.name}</h4>
                                 <span class="text-2xl">${baseCard.logo}</span>
@@ -516,15 +938,22 @@
                             <p class="text-sm mb-2">${baseCard.campaign}</p>
                             <p class="text-xs mb-1">Party: ${baseCard.party}</p>
                             <p class="text-xs mb-1">Approval: ${baseCard.approval}%</p>
+                            <p class="text-xs mb-1 text-blue-300">${baseCard.specialAbility}</p>
                             <p class="text-xs mb-3">Policy: ${baseCard.policy}</p>
                             <div class="flex justify-between items-center">
                                 <span class="font-bold">Level ${card.level}/${baseCard.maxLevel}</span>
                                 <span class="font-bold">+${baseCard.baseBonus * card.level} Power</span>
                             </div>
-                            <button class="upgrade-card-btn w-full mt-3 ${isMaxLevel ? 'bg-gray-500 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'} text-white font-bold py-2 px-4 rounded-lg transition" 
-                                data-unique-id="${card.uniqueId}" ${isMaxLevel ? 'disabled' : ''}>
-                                ${upgradeText}
-                            </button>
+                            <div class="flex gap-2 mt-3">
+                                <button class="activate-card-btn flex-1 ${isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'} text-white font-bold py-2 px-4 rounded-lg transition" 
+                                    data-unique-id="${card.uniqueId}">
+                                    ${isActive ? 'Deactivate' : 'Activate'}
+                                </button>
+                                <button class="upgrade-card-btn flex-1 ${isMaxLevel ? 'bg-gray-500 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'} text-white font-bold py-2 px-4 rounded-lg transition" 
+                                    data-unique-id="${card.uniqueId}" ${isMaxLevel ? 'disabled' : ''}>
+                                    ${upgradeText}
+                                </button>
+                            </div>
                         </div>
                     `;
                 });
@@ -543,6 +972,10 @@
                 if (!btn.disabled) {
                     btn.addEventListener('click', upgradeCard);
                 }
+            });
+            
+            document.querySelectorAll('.activate-card-btn').forEach(btn => {
+                btn.addEventListener('click', activateCard);
             });
         }
 
@@ -580,10 +1013,19 @@
             if (!storeContainer) return;
             
             let html = `
-                <h3 class="text-xl font-bold text-purple-400 mb-4">Local Storage Notice</h3>
-                <div class="card-item p-4 rounded-xl border-2 border-purple-500">
-                    <p class="text-sm mb-3">This game is running in offline mode. Your progress is saved to your browser's local storage.</p>
-                    <p class="text-sm">To enable cloud saving and multiplayer features, configure Firebase in the script.</p>
+                <h3 class="text-xl font-bold text-purple-400 mb-4">Game Features</h3>
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="card-item p-4 rounded-xl border-2 border-purple-500">
+                        <h4 class="font-bold text-lg mb-2">🎴 Card Activation System</h4>
+                        <p class="text-sm text-gray-300 mb-3">Activate cards to unlock special abilities that boost your campaign!</p>
+                        <ul class="text-xs text-gray-400 space-y-1">
+                            <li>• <span class="text-red-400">Critical Tap</span>: Chance for 3x coins</li>
+                            <li>• <span class="text-blue-400">Auto-Tap</span>: Automatic tapping for 30 seconds</li>
+                            <li>• <span class="text-yellow-400">Tap Storm</span>: Rapid tapping for 30 seconds</li>
+                            <li>• <span class="text-green-400">Double Rewards</span>: 2x daily goal rewards</li>
+                            <li>• <span class="text-purple-400">Party Boost</span>: +50% party multiplier</li>
+                        </ul>
+                    </div>
                 </div>
             `;
             
@@ -595,14 +1037,54 @@
             if (!leaderboardContainer) return;
             
             let html = `
-                <h3 class="text-xl font-bold text-yellow-400 mb-4">Local Game</h3>
+                <h3 class="text-xl font-bold text-yellow-400 mb-4">Local Leaderboard</h3>
                 <div class="card-item p-4 rounded-xl border-2 border-yellow-500">
-                    <p class="text-sm mb-3">Leaderboard features require Firebase configuration.</p>
-                    <p class="text-sm">Your current Total Campaign Influence: <span class="font-bold">${formatNumber(gameState.totalCampaignInfluence)}</span></p>
+                    <p class="text-sm mb-3">Your current campaign performance:</p>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span>Total Funds Raised:</span>
+                            <span class="font-bold text-yellow-400">${formatNumber(gameState.totalLifetimeCoins)}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Total Campaign Influence:</span>
+                            <span class="font-bold text-green-400">${formatNumber(gameState.totalCampaignInfluence)}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Cards Collected:</span>
+                            <span class="font-bold text-blue-400">${gameState.userCards.length}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Total Taps:</span>
+                            <span class="font-bold text-purple-400">${formatNumber(gameState.tapCount)}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 p-4 bg-gray-800/50 rounded-lg">
+                    <h4 class="font-bold text-gray-300 mb-2">Leaderboard Features Coming Soon!</h4>
+                    <p class="text-sm text-gray-400">Global leaderboard with Netlify integration will be available in the next update.</p>
                 </div>
             `;
             
             leaderboardContainer.innerHTML = html;
+        }
+
+        // TCI Calculation
+        function calculateTCI() {
+            const sumOfCardLevels = gameState.userCards.reduce((sum, card) => sum + card.level, 0);
+            const sumOfPartyLevels = Object.values(gameState.parties).reduce((sum, party) => sum + party.level, 0);
+            
+            const TCI = (gameState.totalLifetimeCoins / TCI_SCALING.COINS) + 
+                        (sumOfCardLevels * TCI_SCALING.CARD_LEVEL) + 
+                        (sumOfPartyLevels * TCI_SCALING.PARTY_LEVEL);
+                        
+            gameState.totalCampaignInfluence = Math.floor(TCI);
+        }
+
+        function calculateAndSaveTCI() {
+            calculateTCI();
+            saveGameState();
+            return { newDisplayName: 'Local Player' };
         }
 
         // Navigation
@@ -626,13 +1108,17 @@
 
         // Save/load game state
         function saveGameState() {
-            localStorage.setItem('campaignSimulator_save', JSON.stringify(gameState));
+            try {
+                localStorage.setItem('campaignSimulator_save', JSON.stringify(gameState));
+            } catch (e) {
+                console.error('Failed to save game state:', e);
+            }
         }
 
         function loadGameState() {
-            const saved = localStorage.getItem('campaignSimulator_save');
-            if (saved) {
-                try {
+            try {
+                const saved = localStorage.getItem('campaignSimulator_save');
+                if (saved) {
                     const parsed = JSON.parse(saved);
                     gameState = {...gameState, ...parsed};
                     
@@ -642,16 +1128,11 @@
                     }
                     
                     // Recalculate derived values
-                    gameState.cardBonusSum = gameState.userCards.reduce((sum, card) => {
-                        const baseCard = CANDIDATE_POOL.find(c => c.id === card.id);
-                        return baseCard ? sum + (baseCard.baseBonus * card.level) : sum;
-                    }, 0);
+                    updateTapPower();
                     
-                    gameState.tapPower = Math.ceil((1 * gameState.basePowerMultiplier + gameState.cardBonusSum) * gameState.partyMultiplier);
-                    
-                } catch (e) {
-                    console.error("Error loading saved game:", e);
                 }
+            } catch (e) {
+                console.error('Error loading saved game:', e);
             }
         }
 
@@ -664,17 +1145,39 @@
             loadingIndicator = document.getElementById('loadingIndicator');
             messageBox = document.getElementById('messageBox');
             
+            // Prevent zoom on double-tap
+            document.addEventListener('touchstart', function(e) {
+                if (e.touches.length > 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            document.addEventListener('touchend', function(e) {
+                if (e.touches.length > 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            // Prevent context menu on long press
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            });
+            
             // Load saved game
             loadGameState();
             
             // Set up navigation
             navigate('tap');
             document.querySelectorAll('.nav-item').forEach(item => {
-                item.addEventListener('click', (e) => navigate(e.currentTarget.dataset.tab));
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    navigate(e.currentTarget.dataset.tab);
+                });
             });
 
-            // Set up tap button
+            // Set up tap button with both mouse and touch events
             tapButton.addEventListener('click', handleTap);
+            tapButton.addEventListener('touchstart', handleTap, { passive: false });
             
             // Hide loading indicator
             if (loadingIndicator) {
@@ -683,8 +1186,9 @@
             
             // Initial UI update
             updateUI();
+            updateTapPower();
             
-            showMessage("Game loaded successfully! Tap to start earning funds.", 'success');
+            showMessage("Enhanced Campaign Simulator Loaded! Activate cards for special abilities.", 'success');
         });
     </script>
 </body>
