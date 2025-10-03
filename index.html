@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Supreme Strategic Campaign Simulator</title>
-    <!-- Tailwind CSS CDN for modern, responsive styling -->
+    <title>Supreme Strategic Campaign Simulator (Iraq)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Custom styles: Dynamic Propaganda-Themed Aesthetics */
+        /* Your existing CSS styles remain the same */
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 70%, #0f172a 100%);
@@ -20,18 +19,17 @@
             overflow-x: hidden;
         }
 
-        /* Propaganda Button Style - Dynamic and inviting */
         #tapButton {
             width: 220px;
             height: 220px;
-            background: radial-gradient(circle at center, #f87171 0%, #dc2626 70%, #991b1b 100%);
+            background: radial-gradient(circle at center, #3b82f6 0%, #1e40af 70%, #1e3a8a 100%);
             border: 6px solid #fef3c7;
             color: white;
             font-size: 2.25rem;
             font-weight: 900;
             cursor: pointer;
             text-shadow: 0 4px 10px rgba(0, 0, 0, 0.9);
-            box-shadow: 0 15px 40px rgba(220, 38, 38, 0.7), 0 0 0 15px rgba(254, 243, 199, 0.2);
+            box-shadow: 0 15px 40px rgba(37, 99, 235, 0.7), 0 0 0 15px rgba(254, 243, 199, 0.2);
             transition: transform 0.1s ease, box-shadow 0.1s ease;
             position: relative;
             z-index: 10;
@@ -39,8 +37,8 @@
         }
 
         @keyframes pulse-shadow {
-            0% { box-shadow: 0 15px 40px rgba(220, 38, 38, 0.7), 0 0 0 15px rgba(254, 243, 199, 0.2); }
-            100% { box-shadow: 0 20px 50px rgba(220, 38, 38, 0.9), 0 0 0 18px rgba(254, 243, 199, 0.4); }
+            0% { box-shadow: 0 15px 40px rgba(37, 99, 235, 0.7), 0 0 0 15px rgba(254, 243, 199, 0.2); }
+            100% { box-shadow: 0 20px 50px rgba(37, 99, 235, 0.9), 0 0 0 18px rgba(254, 243, 199, 0.4); }
         }
 
         #tapButton:active {
@@ -49,7 +47,6 @@
             animation: none;
         }
 
-        /* Floating text feedback */
         .tap-feedback {
             position: absolute;
             font-size: 1.8rem;
@@ -65,7 +62,6 @@
             100% { transform: translateY(-70px) scale(0.8); opacity: 0; }
         }
 
-        /* General Card styles */
         .card-item {
             background: #1e293b;
             border: 1px solid #475569;
@@ -77,14 +73,13 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.7);
         }
         
-        /* Nav Bar */
         .nav-bar {
             box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.8);
             background-color: #0f172a;
         }
         .nav-item {
-             color: #94a3b8;
-             cursor: pointer;
+            color: #94a3b8;
+            cursor: pointer;
         }
         .nav-item.active {
             color: #3b82f6;
@@ -96,96 +91,170 @@
             height: 400px;
             overflow-y: auto;
             display: flex;
-            flex-direction: column-reverse; /* New messages at bottom */
+            flex-direction: column-reverse;
             padding: 10px;
             background: #1e293b;
             border-radius: 0.75rem;
             box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
         }
     </style>
-    <!-- Firebase Imports -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, updateDoc, increment, runTransaction, arrayUnion, query, limit, getDocs, addDoc, serverTimestamp, orderBy, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+</head>
+<body class="p-4 sm:p-6 pb-20 max-w-lg mx-auto">
 
-        // Enable debug logging for Firebase issues
-        setLogLevel('Debug');
+    <div id="loadingIndicator" class="fixed inset-0 bg-gray-900/80 z-50 justify-center items-center hidden">
+        <p class="text-white text-xl animate-pulse">Loading Campaign Data...</p>
+    </div>
 
-        // --- GLOBAL SETUP (MANDATORY) ---
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    <div id="messageBox" style="display: none;"></div>
 
-        let app, db, auth, userId;
+    <header class="w-full mb-6 p-4 bg-slate-800/80 rounded-xl shadow-2xl border border-slate-700/50">
+        <h1 class="text-xl font-extrabold text-center mb-4 text-yellow-500">Supreme Strategic Campaign Simulator</h1>
+        <div class="flex justify-around text-center">
+            <div>
+                <p class="text-3xl font-extrabold text-yellow-400" id="coinCounter">0</p>
+                <p class="text-sm text-gray-400">Campaign Funds 💰</p>
+            </div>
+            <div>
+                <p class="text-3xl font-extrabold text-purple-400" id="tokenCounter">0</p>
+                <p class="text-sm text-gray-400">Influence Tokens 💎</p>
+            </div>
+            <div>
+                <p class="text-3xl font-extrabold text-green-400" id="tciCounter">0</p>
+                <p class="text-sm text-gray-400">Total Influence (TCI) 📈</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="w-full flex-grow">
+        <div id="tap" class="tab-content flex flex-col items-center">
+            <div class="relative mb-8 mt-4">
+                <button id="tapButton" class="rounded-full flex flex-col justify-center items-center">
+                    Tap to<br/>Fund<br/><span class="text-3xl">+1</span>
+                </button>
+            </div>
+            
+            <div class="w-full p-4 bg-slate-800/80 rounded-xl shadow-xl border border-slate-700/50">
+                <h3 class="font-bold text-lg text-blue-300 mb-2">Daily Campaign Goal (100 Taps)</h3>
+                <p class="text-sm text-gray-400 mb-2 flex justify-between">
+                    <span>Progress: <span id="dailyTapsCount">0/100</span></span>
+                    <span class="text-yellow-400">+5000 💰 & +1 💎 Reward</span>
+                </p>
+                <div class="w-full bg-gray-700 rounded-full h-2.5">
+                    <div id="dailyProgress" class="bg-blue-500 h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="cards" class="tab-content hidden">
+            <div id="cardsContainer" class="w-full"></div>
+        </div>
+
+        <div id="party" class="tab-content hidden">
+            <div id="partyContainer" class="w-full"></div>
+        </div>
         
+        <div id="store" class="tab-content hidden">
+            <div id="storeContainer" class="w-full"></div>
+        </div>
+        
+        <div id="chat" class="tab-content hidden p-2">
+            <div class="flex flex-col h-[500px] w-full bg-slate-800/80 rounded-xl shadow-2xl border border-slate-700/50">
+                <div id="chatContent" class="flex-grow"></div>
+                <form id="chatForm" class="p-3 border-t border-gray-700 flex">
+                    <input type="text" id="chatInput" placeholder="Send a strategic message..." 
+                        class="flex-grow p-2 rounded-l-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-r-lg">Send</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="leaderboard" class="tab-content hidden">
+            <div id="leaderboardContainer" class="w-full"></div>
+        </div>
+    </main>
+
+    <nav class="nav-bar fixed bottom-0 left-0 right-0 max-w-lg mx-auto w-full flex justify-around p-3 border-t border-gray-700/50 rounded-t-xl z-40">
+        <a class="nav-item flex flex-col items-center p-2 rounded-lg transition" data-tab="tap">
+            <span class="text-xl">👆</span>
+            <span class="text-xs mt-1">Tap</span>
+        </a>
+        <a class="nav-item flex flex-col items-center p-2 rounded-lg transition relative" data-tab="cards">
+            <span class="text-xl">🎴</span>
+            <span class="text-xs mt-1">Cards</span>
+            <span id="cardNotif" class="hidden absolute top-0 right-0 bg-red-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">0</span>
+        </a>
+        <a class="nav-item flex flex-col items-center p-2 rounded-lg transition" data-tab="party">
+            <span class="text-xl">🏛️</span>
+            <span class="text-xs mt-1">Party</span>
+        </a>
+        <a class="nav-item flex flex-col items-center p-2 rounded-lg transition" data-tab="store">
+            <span class="text-xl">💎</span>
+            <span class="text-xs mt-1">Boosts</span>
+        </a>
+        <a class="nav-item flex flex-col items-center p-2 rounded-lg transition" data-tab="leaderboard">
+            <span class="text-xl">🏆</span>
+            <span class="text-xs mt-1">Rank</span>
+        </a>
+        <a class="nav-item flex flex-col items-center p-2 rounded-lg transition" data-tab="chat">
+            <span class="text-xl">💬</span>
+            <span class="text-xs mt-1">Chat</span>
+        </a>
+    </nav>
+
+    <script>
+        // SIMPLIFIED VERSION - Works without Firebase
         // Base Game Constants
-        let TAPS_PER_CARD_DROP_BASE = 10;
+        const TAPS_PER_CARD_DROP_BASE = 10;
         const DAILY_GOAL = 100;
-        const TCI_SCALING = {
-            COINS: 10000,
-            CARD_LEVEL: 10,
-            PARTY_LEVEL: 50
+        const DAILY_REWARD_COINS = 5000;
+        const DAILY_REWARD_TOKENS = 1;
+
+        // Iraqi Political Party Data
+        const INITIAL_PARTY_DATA = {
+            p1: { name: "تيار سائرون (Sairoon Current)", level: 1, xp: 0, multiplier: 1.0, logo: '🇮🇶', color: 'bg-red-700' },
+            p2: { name: "تحالف الفتح (Fatah Alliance)", level: 1, xp: 0, multiplier: 1.0, logo: '🛡️', color: 'bg-green-700' },
+            p3: { name: "الحزب الديمقراطي الكردستاني (KDP)", level: 1, xp: 0, multiplier: 1.0, logo: '⛰️', color: 'bg-yellow-700' },
+            p4: { name: "تحالف تقدم (Taqaddum Coalition)", level: 1, xp: 0, multiplier: 1.0, logo: '🏗️', color: 'bg-blue-700' },
+            p5: { name: "مستقلون/تشرين (Tishreen/Independents)", level: 1, xp: 0, multiplier: 1.0, logo: '✊', color: 'bg-purple-700' }
         };
-        
-        // --- GAME STATE AND INITIAL VALUES ---
-        window.gameState = {
+
+        // Candidate pool
+        const CANDIDATE_POOL = [
+            { id: 1, name: "مصطفى العبادي (Mustafa Al-Abadi)", campaign: "مكافحة الفساد", baseBonus: 1, bid: 1000, maxLevel: 5, party: INITIAL_PARTY_DATA.p1.name, logoColor: "text-red-500", partyId: 'p1', policy: "Financial and administrative reform.", approval: 75, logo: '💰' },
+            { id: 2, name: "فاطمة الجبوري (Fatima Al-Jubouri)", campaign: "خدمات البنية التحتية", baseBonus: 2, bid: 5000, maxLevel: 10, party: INITIAL_PARTY_DATA.p4.name, logoColor: "text-blue-500", partyId: 'p4', policy: "Improved electricity and water access.", approval: 88, logo: '⚡' },
+            { id: 3, name: "آلان أحمد (Alan Ahmed)", campaign: "اقتصاد الإقليم", baseBonus: 3, bid: 15000, maxLevel: 15, party: INITIAL_PARTY_DATA.p3.name, logoColor: "text-yellow-500", partyId: 'p3', policy: "Fair share of federal oil and gas revenues.", approval: 65, logo: '⛽' },
+            { id: 4, name: "حيدر الموسوي (Haider Al-Mousawi)", campaign: "الأمن القومي", baseBonus: 5, bid: 30000, maxLevel: 20, party: INITIAL_PARTY_DATA.p2.name, logoColor: "text-green-500", partyId: 'p2', policy: "Strengthening border defense and security forces.", approval: 92, logo: '⚔️' },
+            { id: 5, name: "نور الصراف (Noor Al-Sarraf)", campaign: "الإصلاح المدني", baseBonus: 10, bid: 60000, maxLevel: 25, party: INITIAL_PARTY_DATA.p5.name, logoColor: "text-purple-500", partyId: 'p5', policy: "Push for judicial and electoral independence.", approval: 55, logo: '📜' }
+        ];
+
+        // Game State
+        let gameState = {
             coins: 0,
-            influenceTokens: 0, 
+            influenceTokens: 0,
             tapPower: 1,
             cardBonusSum: 0,
             partyMultiplier: 1.0,
             dailyTaps: 0,
             tapCount: 0,
             totalLifetimeCoins: 0,
-            totalCampaignInfluence: 0, 
-            
-            basePowerMultiplier: 1, 
-            dropRateMultiplier: 1, 
-            partyMultiplierBonus: 1.0, 
-            boostsPurchased: [], 
-            
+            totalCampaignInfluence: 0,
+            basePowerMultiplier: 1,
+            dropRateMultiplier: 1,
+            partyMultiplierBonus: 1.0,
+            boostsPurchased: [],
             userCards: [],
-            parties: {},
+            parties: {...INITIAL_PARTY_DATA},
             unclaimedCards: [],
-            isAuthReady: false,
+            lastDailyRewardDate: null
         };
 
         // DOM elements
-        const coinCounter = document.getElementById('coinCounter');
-        const tokenCounter = document.getElementById('tokenCounter');
-        const tapButton = document.getElementById('tapButton');
-        const cardsContainer = document.getElementById('cardsContainer');
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const messageBox = document.getElementById('messageBox');
-        
-        
-        // Candidate pool (Higher bid = more rare/powerful)
-        const CANDIDATE_POOL = [
-            { id: 1, name: "Alex Morgan", campaign: "Local Roads", baseBonus: 1, bid: 1000, maxLevel: 5, party: "The Commons", logoColor: "text-green-500", partyId: 'p1', policy: "Invest in public infrastructure.", approval: 75, logo: '🌳' },
-            { id: 2, name: "Samira Khan", campaign: "Education Access", baseBonus: 2, bid: 5000, maxLevel: 10, party: "Future Forward", logoColor: "text-yellow-500", partyId: 'p2', policy: "Universal higher education grants.", approval: 88, logo: '💡' },
-            { id: 3, name: "Jordan Lee", campaign: "Digital Liberty", baseBonus: 3, bid: 15000, maxLevel: 15, party: "Tech Progress", logoColor: "text-blue-500", partyId: 'p3', policy: "Deregulation of digital economy.", approval: 65, logo: '💻' },
-            { id: 4, name: "Maria Lopez", campaign: "Healthcare Reform", baseBonus: 5, bid: 30000, maxLevel: 20, party: "Social Justice", logoColor: "text-purple-500", partyId: 'p4', policy: "Single-payer national healthcare.", approval: 92, logo: '⚖️' },
-            { id: 5, name: "David Chen", campaign: "Global Economic Power", baseBonus: 10, bid: 60000, maxLevel: 25, party: "The Coalition", logoColor: "text-orange-500", partyId: 'p5', policy: "Aggressive international trade policy.", approval: 55, logo: '🤝' }
-        ];
-        
-        const INITIAL_PARTY_DATA = {
-            p1: { name: "The Commons", level: 1, xp: 0, multiplier: 1.0, logo: '🌳', color: 'bg-green-700' },
-            p2: { name: "Future Forward", level: 1, xp: 0, multiplier: 1.0, logo: '💡', color: 'bg-yellow-700' },
-            p3: { name: "Tech Progress", level: 1, xp: 0, multiplier: 1.0, logo: '💻', color: 'bg-blue-700' },
-            p4: { name: "Social Justice", level: 1, xp: 0, multiplier: 1.0, logo: '⚖️', color: 'bg-purple-700' },
-            p5: { name: "The Coalition", level: 1, xp: 0, multiplier: 1.0, logo: '🤝', color: 'bg-orange-700' }
-        };
-        
-        // Influence Token Boosts
-        const BOOST_STORE = [
-            { id: 'bp_1', name: "Tier 1: Base Power Doubler", icon: '💪', effect: "Doubles your base tap power (x2).", cost: 5, upgradeKey: 'basePowerMultiplier', effectValue: 2.0 },
-            { id: 'dr_1', name: "Tier 1: Recruitment Efficiency", icon: '⏱️', effect: "Reduces card drop tap requirement by 50%.", cost: 10, upgradeKey: 'dropRateMultiplier', effectValue: 2.0 }, // 10 / 2.0 = 5 Taps
-            { id: 'pm_1', name: "Tier 1: Global Unity Initiative", icon: '🌐', effect: "Permanently adds +25% to your total Party Multiplier.", cost: 20, upgradeKey: 'partyMultiplierBonus', effectValue: 0.25 }
-        ];
-        
-        // Utility to show temporary message instead of alert
+        let coinCounter, tokenCounter, tapButton, cardsContainer, loadingIndicator, messageBox;
+
+        // Utility functions
         function showMessage(text, type = 'info') {
+            if (!messageBox) return;
+            
             messageBox.textContent = text;
             messageBox.className = `p-3 rounded-xl text-center shadow-lg transition-all duration-300 fixed bottom-20 left-1/2 -translate-x-1/2 w-11/12 max-w-sm z-50 font-semibold ${type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-green-600' : 'bg-blue-600'}`;
             messageBox.style.display = 'block';
@@ -194,181 +263,12 @@
             }, 3000);
         }
 
-        // Function to determine the active daily party boost
-        function getDailyPartyBoost() {
-            const today = new Date();
-            const startOfYear = new Date(today.getFullYear(), 0, 0);
-            const diff = today - startOfYear;
-            const oneDay = 1000 * 60 * 60 * 24;
-            const dayOfYear = Math.floor(diff / oneDay);
-            
-            const parties = Object.keys(INITIAL_PARTY_DATA);
-            const randomIndex = dayOfYear % parties.length;
-            const partyId = parties[randomIndex];
-            
-            return {
-                id: partyId,
-                name: INITIAL_PARTY_DATA[partyId].name,
-                logo: INITIAL_PARTY_DATA[partyId].logo,
-            };
-        }
-        
-        function getRandomCandidate() {
-             const weights = CANDIDATE_POOL.map(card => card.bid);
-             const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-             let random = Math.random() * totalWeight;
-
-             for (let i = 0; i < CANDIDATE_POOL.length; i++) {
-                 random -= weights[i];
-                 if (random <= 0) {
-                     return { 
-                         id: CANDIDATE_POOL[i].id, 
-                         level: 1, 
-                         uniqueId: crypto.randomUUID(), 
-                         name: CANDIDATE_POOL[i].name 
-                     };
-                 }
-             }
-             return { id: CANDIDATE_POOL[0].id, level: 1, uniqueId: crypto.randomUUID(), name: CANDIDATE_POOL[0].name };
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toLocaleString();
         }
 
-
-        // --- FIREBASE INITIALIZATION & AUTH ---
-        if (firebaseConfig) {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-        }
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                userId = user.uid;
-                await initializeUserData(userId);
-            } else {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            }
-        });
-
-        async function initializeUserData(uid) {
-            loadingIndicator.style.display = 'flex';
-            const userDocRef = doc(db, "artifacts", appId, "users", uid, "data", "profile");
-            const partyDocRef = doc(db, "artifacts", appId, "users", uid, "data", "parties");
-            
-            const initialData = { 
-                coins: 0, influenceTokens: 0, tapPower: 1, tapCount: 0, dailyTaps: 0, totalLifetimeCoins: 0, 
-                basePowerMultiplier: 1, dropRateMultiplier: 1, partyMultiplierBonus: 1.0, boostsPurchased: [], 
-                userCards: [], unclaimedCards: [] 
-            };
-
-            try {
-                // 1. User Profile Data
-                const userDocSnap = await getDoc(userDocRef);
-                if (!userDocSnap.exists()) {
-                    await setDoc(userDocRef, initialData);
-                    window.gameState = { ...window.gameState, ...initialData };
-                } else {
-                    const existingData = userDocSnap.data();
-                    window.gameState = { ...window.gameState, ...initialData, ...existingData };
-                }
-
-                // 2. Parties Data (Set only if not existing)
-                const partyDocSnap = await getDoc(partyDocRef);
-                if (!partyDocSnap.exists()) {
-                    await setDoc(partyDocRef, INITIAL_PARTY_DATA);
-                    window.gameState.parties = INITIAL_PARTY_DATA;
-                } else {
-                     window.gameState.parties = partyDocSnap.data();
-                }
-                
-                // 3. Leaderboard check
-                await calculateAndSaveTCI(true);
-
-                setupFirestoreListeners(uid);
-                // Ensure Tap button is interactive after auth
-                tapButton.addEventListener('click', handleTap);
-
-            } catch (error) {
-                console.error("Error initializing user data:", error);
-                showMessage("Error loading game data. Check console.", 'error');
-                loadingIndicator.style.display = 'none';
-            }
-        }
-
-        function setupFirestoreListeners(uid) {
-            const userDocRef = doc(db, "artifacts", appId, "users", uid, "data", "profile");
-            const partyDocRef = doc(db, "artifacts", appId, "users", uid, "data", "parties");
-            
-            // Listener for User Profile (Coins, Tokens, Taps, Boosts, Cards)
-            onSnapshot(userDocRef, (doc) => {
-                if (doc.exists()) {
-                    const data = doc.data();
-                    
-                    window.gameState = {
-                        ...window.gameState,
-                        ...data,
-                        basePowerMultiplier: data.basePowerMultiplier || 1,
-                        // Fix: dropRateMultiplier should be 1 if undefined, not a multiplier value
-                        dropRateMultiplier: data.dropRateMultiplier || 1, 
-                        partyMultiplierBonus: data.partyMultiplierBonus || 1.0,
-                        boostsPurchased: data.boostsPurchased || [],
-                        userCards: data.userCards || [],
-                        unclaimedCards: data.unclaimedCards || []
-                    };
-                    
-                    // The TAPS_PER_CARD_DROP_BASE calculation must use the *division* factor
-                    const dropRateFactor = window.gameState.dropRateMultiplier;
-                    TAPS_PER_CARD_DROP_BASE = 10 / dropRateFactor;
-
-                    window.gameState.cardBonusSum = window.gameState.userCards.reduce((sum, card) => {
-                        const baseCard = CANDIDATE_POOL.find(c => c.id === card.id);
-                        if (baseCard) {
-                            return sum + (baseCard.baseBonus * card.level);
-                        }
-                        return sum;
-                    }, 0);
-
-                    // Effective party multiplier includes party levels and permanent boost purchase
-                    let effectivePartyMultiplier = window.gameState.partyMultiplier + (window.gameState.partyMultiplierBonus - 1.0);
-                    
-                    window.gameState.tapPower = Math.ceil((1 * window.gameState.basePowerMultiplier + window.gameState.cardBonusSum) * effectivePartyMultiplier);
-                    
-                    if (data.dailyTaps >= DAILY_GOAL && (window.gameState.dailyTaps < DAILY_GOAL)) {
-                        rewardDailyGoal();
-                    }
-
-                    calculateTCI();
-                    updateUI();
-                }
-                window.gameState.isAuthReady = true;
-                loadingIndicator.style.display = 'none';
-            });
-
-            // Listener for Party Data
-            onSnapshot(partyDocRef, (doc) => {
-                if (doc.exists()) {
-                    const partyData = doc.data();
-                    window.gameState.parties = partyData;
-                    
-                    const totalMultiplier = Object.values(partyData).reduce((sum, party) => sum + (party.multiplier - 1.0), 0) + 1.0;
-                    window.gameState.partyMultiplier = totalMultiplier;
-                    
-                    let effectivePartyMultiplier = window.gameState.partyMultiplier + (window.gameState.partyMultiplierBonus - 1.0);
-                    window.gameState.tapPower = Math.ceil((1 * window.gameState.basePowerMultiplier + window.gameState.cardBonusSum) * effectivePartyMultiplier);
-                    
-                    updateUI();
-                    if (document.querySelector('.nav-item.active').dataset.tab === 'party') renderPartySection();
-                }
-            });
-            
-            setupChatListener();
-        }
-        
-        // --- GAMEPLAY FUNCTIONS (CORE TAP LOGIC ADDED) ---
-        
         function createTapFeedback(value, x, y) {
             const feedback = document.createElement('div');
             feedback.className = 'tap-feedback';
@@ -382,841 +282,410 @@
             }, 900);
         }
 
-        async function handleTap(event) {
-            if (!userId) return showMessage("Authentication is still loading. Please wait.", 'info');
+        function getRandomCandidate() {
+            const weights = CANDIDATE_POOL.map(card => card.bid);
+            const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+            let random = Math.random() * totalWeight;
 
-            const tapValue = window.gameState.tapPower;
-            const userDocRef = doc(db, "artifacts", appId, "users", userId, "data", "profile");
+            for (let i = 0; i < CANDIDATE_POOL.length; i++) {
+                random -= weights[i];
+                if (random <= 0) {
+                    return { 
+                        id: CANDIDATE_POOL[i].id, 
+                        level: 1, 
+                        uniqueId: Date.now() + Math.random(), // Simple ID generation
+                        name: CANDIDATE_POOL[i].name 
+                    };
+                }
+            }
+            return { id: CANDIDATE_POOL[0].id, level: 1, uniqueId: Date.now(), name: CANDIDATE_POOL[0].name };
+        }
+
+        // Core game functions
+        function handleTap(event) {
+            const tapValue = gameState.tapPower;
             
             // UI feedback
             const rect = tapButton.getBoundingClientRect();
             const x = event.clientX - rect.left + (rect.width / 2);
             const y = event.clientY - rect.top + (rect.height / 2);
             createTapFeedback(tapValue, rect.left + x - 20, rect.top + y - 20);
-
-            try {
-                await runTransaction(db, async (transaction) => {
-                    const userDoc = await transaction.get(userDocRef);
-                    if (!userDoc.exists()) throw "User profile not found.";
-
-                    const data = userDoc.data();
-                    const newTapCount = (data.tapCount || 0) + 1;
-                    const newDailyTaps = (data.dailyTaps || 0) + 1;
-                    
-                    let newUnclaimedCards = data.unclaimedCards || [];
-                    let shouldDropCard = false;
-
-                    // Card Drop Logic
-                    if (newTapCount % Math.ceil(TAPS_PER_CARD_DROP_BASE) === 0) {
-                        const newCard = getRandomCandidate();
-                        newUnclaimedCards.push(newCard);
-                        shouldDropCard = true;
-                    }
-
-                    transaction.update(userDocRef, {
-                        coins: increment(tapValue),
-                        tapCount: newTapCount,
-                        dailyTaps: newDailyTaps,
-                        totalLifetimeCoins: increment(tapValue),
-                        unclaimedCards: newUnclaimedCards
-                    });
-                    
-                    if (shouldDropCard) {
-                        // Show success message *after* transaction commits
-                        setTimeout(() => showMessage("📇 New Candidate Card found!", 'success'), 100);
-                    }
-                });
-                
-                calculateAndSaveTCI();
-
-            } catch (error) {
-                console.error("Tap transaction failed:", error);
-                showMessage("Tap failed. Check connection.", 'error');
-            }
-        }
-
-        async function rewardDailyGoal() {
-            const userDocRef = doc(db, "artifacts", appId, "users", userId, "data", "profile");
             
-            try {
-                 await updateDoc(userDocRef, {
-                    dailyTaps: 0,
-                    coins: increment(5000),
-                    influenceTokens: increment(1),
-                    totalLifetimeCoins: increment(5000)
-                });
-                showMessage("🎉 Daily Influence Goal Met! +5000 Coins & +1 Influence Token!", 'success');
-            } catch(e) {
-                console.error("Failed to reward daily goal:", e);
+            // Update game state
+            gameState.coins += tapValue;
+            gameState.tapCount += 1;
+            gameState.dailyTaps += 1;
+            gameState.totalLifetimeCoins += tapValue;
+            
+            // Check for card drop
+            if (gameState.tapCount % TAPS_PER_CARD_DROP_BASE === 0) {
+                const newCard = getRandomCandidate();
+                gameState.unclaimedCards.push(newCard);
+                showMessage("📇 New Candidate Card found!", 'success');
             }
+            
+            // Check for daily goal
+            const today = new Date().toISOString().split('T')[0];
+            if (gameState.dailyTaps === DAILY_GOAL && gameState.lastDailyRewardDate !== today) {
+                gameState.coins += DAILY_REWARD_COINS;
+                gameState.influenceTokens += DAILY_REWARD_TOKENS;
+                gameState.totalLifetimeCoins += DAILY_REWARD_COINS;
+                gameState.lastDailyRewardDate = today;
+                showMessage(`🎉 Daily Influence Goal Met! +${formatNumber(DAILY_REWARD_COINS)} 💰 & +${DAILY_REWARD_TOKENS} 💎`, 'success');
+            }
+            
+            // Save and update UI
+            saveGameState();
+            updateUI();
         }
-        
-        async function upgradeCard(e) {
-            if (!window.gameState.isAuthReady) return showMessage("Loading data, please wait...", 'info');
 
+        function upgradeCard(e) {
             const uniqueId = e.currentTarget.dataset.uniqueId;
-            const userDocRef = doc(db, "artifacts", appId, "users", userId, "data", "profile");
-            const partyDocRef = doc(db, "artifacts", appId, "users", userId, "data", "parties");
+            const cardIndex = gameState.userCards.findIndex(c => c.uniqueId == uniqueId);
             
-            try {
-                await runTransaction(db, async (transaction) => {
-                    const userDoc = await transaction.get(userDocRef);
-                    const partyDoc = await transaction.get(partyDocRef);
-                    if (!userDoc.exists() || !partyDoc.exists()) throw "Game data missing.";
-
-                    const userData = userDoc.data();
-                    
-                    const cardIndex = userData.userCards.findIndex(c => c.uniqueId === uniqueId);
-                    if (cardIndex === -1) throw "Card not found in collection.";
-                    
-                    const cardToUpgrade = userData.userCards[cardIndex];
-                    const baseCard = CANDIDATE_POOL.find(c => c.id === cardToUpgrade.id);
-                    
-                    if (!baseCard) throw "Base candidate data missing.";
-                    if (cardToUpgrade.level >= baseCard.maxLevel) throw "Card is at Max Level!";
-                    
-                    const nextLevel = cardToUpgrade.level + 1;
-                    const cost = nextLevel * 1000 + (baseCard.bid / 100); 
-                    const xpGain = 10;
-                    
-                    if (userData.coins < cost) throw `Need ${cost.toLocaleString()} more Campaign Funds.`;
-
-                    // Apply Daily Boost Logic
-                    const dailyBoost = getDailyPartyBoost();
-                    const effectiveXpGain = baseCard.partyId === dailyBoost.id ? xpGain * 2 : xpGain;
-
-                    // 1. Update Card level locally for transaction
-                    // Need to create a *new* array for Firestore update
-                    const newUserCards = [...userData.userCards];
-                    newUserCards[cardIndex] = { ...cardToUpgrade, level: nextLevel };
-                    
-                    // 2. Perform Transaction updates
-                    transaction.update(userDocRef, { 
-                        coins: increment(-cost),
-                        totalLifetimeCoins: increment(-cost),
-                        userCards: newUserCards
-                    });
-                    
-                    // 3. Update Party XP
-                    transaction.update(partyDocRef, {
-                        [`${baseCard.partyId}.xp`]: increment(effectiveXpGain),
-                    });
-                    
-                    // Add cardToUpgrade property to the error so we can access it in the catch block 
-                    // for success message
-                    throw { message: `Card upgraded to Level ${nextLevel}! Party XP increased by ${effectiveXpGain}`, isSuccess: true, effectiveXpGain: effectiveXpGain };
-                });
-            } catch (error) {
-                 if (error.isSuccess) {
-                     showMessage(error.message, 'success');
-                     calculateAndSaveTCI(); 
-                 } else {
-                     console.error("Card upgrade failed:", error);
-                     showMessage(typeof error === 'string' ? error : error.message || "Card upgrade failed.", 'error');
-                 }
-            }
-        }
-
-        // --- TCI CALCULATION AND PERSISTENCE ---
-
-        function getSumOfCardLevels() {
-            return window.gameState.userCards.reduce((sum, card) => sum + card.level, 0);
-        }
-
-        function getSumOfPartyLevels() {
-            return Object.values(window.gameState.parties).reduce((sum, party) => sum + party.level, 0);
-        }
-
-        function calculateTCI() {
-            const TCI = (window.gameState.totalLifetimeCoins / TCI_SCALING.COINS) + 
-                        (getSumOfCardLevels() * TCI_SCALING.CARD_LEVEL) + 
-                        (getSumOfPartyLevels() * TCI_SCALING.PARTY_LEVEL);
-            
-            window.gameState.totalCampaignInfluence = Math.floor(TCI);
-            return window.gameState.totalCampaignInfluence;
-        }
-
-        async function calculateAndSaveTCI(initialSetup = false) {
-            if (!userId) return;
-
-            const tciValue = calculateTCI();
-            const leaderboardDocRef = doc(db, "artifacts", appId, "public/data/leaderboard", userId);
-            const dataToSave = {
-                uid: userId,
-                tci: tciValue,
-                lastUpdate: serverTimestamp(),
-                username: userId.substring(0, 8), 
-            };
-
-            try {
-                await setDoc(leaderboardDocRef, dataToSave, { merge: true });
-            } catch (error) {
-                console.error("Failed to save TCI to leaderboard:", error);
-            }
-        }
-        
-        // --- CHAT SYSTEM FUNCTIONS ---
-        
-        const chatContent = document.getElementById('chatContent');
-        const chatInput = document.getElementById('chatInput');
-        const chatSendButton = document.getElementById('chatSendButton');
-
-        async function postMessage() {
-            if (!userId || !window.gameState.isAuthReady) return showMessage("Authentication required to chat.", 'error');
-
-            const messageText = chatInput.value.trim();
-            if (messageText.length === 0 || messageText.length > 150) {
-                return showMessage("Message must be 1-150 characters.", 'error');
-            }
-            
-            const chatCollectionRef = collection(db, "artifacts", appId, "public/data/chat");
-            
-            try {
-                // Using addDoc for new messages
-                await addDoc(chatCollectionRef, {
-                    uid: userId,
-                    username: userId.substring(0, 8),
-                    message: messageText,
-                    timestamp: serverTimestamp(),
-                });
-                chatInput.value = '';
-            } catch (error) {
-                console.error("Failed to post message:", error);
-                showMessage("Failed to send message.", 'error');
-            }
-        }
-        
-        if (chatSendButton) {
-            chatSendButton.addEventListener('click', postMessage);
-            chatInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') postMessage();
-            });
-        }
-
-
-        function setupChatListener() {
-            if (!userId) return;
-            const chatCollectionRef = collection(db, "artifacts", appId, "public/data/chat");
-            
-            // Due to environment constraints on orderBy, we fetch and sort client-side.
-            // We set a collection listener and handle the sorting in the render function.
-
-            onSnapshot(chatCollectionRef, (snapshot) => {
-                const messages = [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    // Firestore timestamps (seconds/nanoseconds) or serverTimestamp() field
-                    messages.push({ ...data, id: doc.id });
-                });
-                
-                // Sort by timestamp, ensuring messages with missing timestamps (e.g., pending server write)
-                // are handled gracefully (placed last, as they are likely the newest client writes)
-                messages.sort((a, b) => {
-                    const timeA = a.timestamp?.seconds || Infinity;
-                    const timeB = b.timestamp?.seconds || Infinity;
-                    return timeA - timeB;
-                });
-
-                renderChat(messages.slice(-50)); // Display only the last 50 messages
-            });
-        }
-
-        function renderChat(messages) {
-            if (!chatContent) return;
-            
-            // Preserve scroll position if close to bottom
-            const isScrolledToBottom = chatContent.scrollHeight - chatContent.clientHeight <= chatContent.scrollTop + 1;
-            
-            chatContent.innerHTML = '';
-            
-            messages.forEach(msg => {
-                const isMe = msg.uid === userId;
-                // Handle cases where timestamp is a Firestore Timestamp object or undefined
-                const date = msg.timestamp ? 
-                             (msg.timestamp.toDate ? msg.timestamp.toDate() : new Date(msg.timestamp.seconds * 1000)) 
-                             : new Date();
-                const timeString = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-                const chatBubble = document.createElement('div');
-                chatBubble.className = `p-2 mb-2 max-w-[85%] rounded-lg shadow-md ${isMe ? 'bg-indigo-600 ml-auto' : 'bg-slate-600 mr-auto'}`;
-                
-                chatBubble.innerHTML = `
-                    <div class="text-xs font-bold ${isMe ? 'text-yellow-200' : 'text-green-300'}">${msg.username}:</div>
-                    <p class="text-sm text-white break-words">${msg.message}</p>
-                    <span class="text-xs text-right block mt-1 ${isMe ? 'text-indigo-200' : 'text-slate-400'}">${timeString}</span>
-                `;
-                chatContent.appendChild(chatBubble);
-            });
-            
-            // Auto-scroll to the bottom only if the user was already near the bottom
-            if (isScrolledToBottom) {
-                 chatContent.scrollTop = chatContent.scrollHeight;
-            } else if (chatContent.childElementCount > 0) {
-                 // After reversing the innerHTML order (CSS flex-direction: column-reverse), the scroll position 
-                 // should be at the bottom for new messages to appear correctly.
-                 chatContent.scrollTop = chatContent.scrollHeight;
-            }
-        }
-
-
-        // --- UI RENDERING ---
-
-        function updateUI() {
-            coinCounter.textContent = `🪙 Funds: ${Math.floor(window.gameState.coins).toLocaleString()}`;
-            tokenCounter.textContent = `💎 Tokens: ${window.gameState.influenceTokens}`;
-            
-            const effectivePartyMultiplier = window.gameState.partyMultiplier + (window.gameState.partyMultiplierBonus - 1.0);
-            const globalBonusPercent = (effectivePartyMultiplier * 100 - 100).toFixed(0);
-
-            document.getElementById('tapPowerDisplay').textContent = `Tap Power: ${window.gameState.tapPower.toLocaleString()} (x${globalBonusPercent}% Global)`;
-            document.getElementById('dailyReward').textContent = `Goal: ${window.gameState.dailyTaps}/${DAILY_GOAL} taps`;
-            document.getElementById('tciDisplay').textContent = `TCI: ${window.gameState.totalCampaignInfluence.toLocaleString()}`;
-            
-            const progress = (window.gameState.dailyTaps % DAILY_GOAL) / DAILY_GOAL * 100;
-            document.getElementById('progressBar').style.width = `${progress}%`;
-            
-            const dailyBoost = getDailyPartyBoost();
-            document.getElementById('dailyBoostBanner').innerHTML = `
-                <span class="text-yellow-300 font-extrabold text-sm sm:text-lg">${dailyBoost.logo} ${dailyBoost.name}</span> is offering <span class="text-red-400 font-extrabold">2X XP</span> today! Upgrade their cards!
-            `;
-            
-            renderNewCards();
-            document.getElementById('userIdDisplay').textContent = `User ID: ${userId || 'Loading...'}`;
-        }
-        
-        function renderNewCards() {
-             cardsContainer.innerHTML = '';
-            const unclaimed = window.gameState.unclaimedCards;
-            
-            // Use the calculated TAPS_PER_CARD_DROP_BASE
-            const requiredTaps = Math.ceil(TAPS_PER_CARD_DROP_BASE - (window.gameState.tapCount % TAPS_PER_CARD_DROP_BASE));
-
-            if (unclaimed.length === 0) {
-                 cardsContainer.innerHTML = `<p class="text-sm text-gray-500 text-center p-4">Tap **${requiredTaps}** times to find a new Candidate Card! (Current rate: ${TAPS_PER_CARD_DROP_BASE.toFixed(1)} taps/card)</p>`;
-                 return;
-            }
-
-            unclaimed.forEach(cardData => {
-                 const baseCard = CANDIDATE_POOL.find(c => c.id === cardData.id);
-                 if (!baseCard) return;
-
-                 const cardEl = document.createElement('div');
-                 cardEl.className = 'card-item p-3 rounded-xl shadow-xl flex flex-col items-center justify-center w-36 bg-gray-800 m-2 animate-pulse';
-                 cardEl.innerHTML = `
-                    <div class="text-3xl mb-1">${baseCard.logo}</div>
-                    <div class="text-sm font-semibold text-yellow-400">NEW: ${baseCard.name}</div>
-                    <div class="text-xs text-center">${baseCard.party}</div>
-                    <button class="claim-btn mt-2 px-3 py-1 text-sm font-bold rounded-full bg-red-600 hover:bg-red-500 text-white transition-colors">
-                        CLAIM
-                    </button>
-                 `;
-                 
-                 cardEl.querySelector('.claim-btn').addEventListener('click', (e) => claimCard(e, cardData));
-                 cardsContainer.appendChild(cardEl);
-            });
-        }
-        
-        // --- Full Card Management Rendering ---
-        function renderMyCardsTab() {
-             const myCardsList = document.getElementById('myCardsList');
-             myCardsList.innerHTML = '';
-
-             if (window.gameState.userCards.length === 0) {
-                myCardsList.innerHTML = '<p class="text-center text-gray-400 mt-8">No Candidate Cards collected. Claim one on the Home screen!</p>';
+            if (cardIndex === -1) {
+                showMessage("Card not found in collection.", 'error');
                 return;
-             }
-             
-             window.gameState.userCards.forEach(card => {
+            }
+            
+            const cardToUpgrade = gameState.userCards[cardIndex];
+            const baseCard = CANDIDATE_POOL.find(c => c.id === cardToUpgrade.id);
+            
+            if (!baseCard) {
+                showMessage("Base candidate data missing.", 'error');
+                return;
+            }
+            
+            if (cardToUpgrade.level >= baseCard.maxLevel) {
+                showMessage("Card is at Max Level!", 'error');
+                return;
+            }
+            
+            const nextLevel = cardToUpgrade.level + 1;
+            const cost = nextLevel * 1000 + (baseCard.bid / 100);
+            
+            if (gameState.coins < cost) {
+                showMessage(`Need ${formatNumber(cost)} more Campaign Funds.`, 'error');
+                return;
+            }
+            
+            // Perform upgrade
+            gameState.coins -= cost;
+            gameState.totalLifetimeCoins -= cost;
+            gameState.userCards[cardIndex].level = nextLevel;
+            
+            // Update card bonus sum and tap power
+            gameState.cardBonusSum = gameState.userCards.reduce((sum, card) => {
                 const baseCard = CANDIDATE_POOL.find(c => c.id === card.id);
-                if (!baseCard) return;
+                return baseCard ? sum + (baseCard.baseBonus * card.level) : sum;
+            }, 0);
+            
+            gameState.tapPower = Math.ceil((1 * gameState.basePowerMultiplier + gameState.cardBonusSum) * gameState.partyMultiplier);
+            
+            showMessage(`Card upgraded to Level ${nextLevel}!`, 'success');
+            saveGameState();
+            updateUI();
+            
+            // Re-render cards if on cards tab
+            if (document.querySelector('.nav-item.active').dataset.tab === 'cards') {
+                renderCardsSection();
+            }
+        }
 
-                const nextLevel = card.level + 1;
-                const cost = nextLevel * 1000 + (baseCard.bid / 100); 
-                const canUpgrade = window.gameState.coins >= cost && card.level < baseCard.maxLevel;
-                const xpGain = 10;
-                const dailyBoost = getDailyPartyBoost();
-                const effectiveXpGain = baseCard.partyId === dailyBoost.id ? xpGain * 2 : xpGain;
-                const isBoosted = baseCard.partyId === dailyBoost.id;
+        function claimCard(e) {
+            const uniqueId = e.currentTarget.dataset.uniqueId;
+            const cardIndex = gameState.unclaimedCards.findIndex(c => c.uniqueId == uniqueId);
+            
+            if (cardIndex === -1) {
+                showMessage("Card not found in unclaimed cards.", 'error');
+                return;
+            }
+            
+            const cardToClaim = gameState.unclaimedCards[cardIndex];
+            gameState.unclaimedCards.splice(cardIndex, 1);
+            gameState.userCards.push(cardToClaim);
+            
+            showMessage("Card claimed successfully!", 'success');
+            saveGameState();
+            updateUI();
+            
+            // Re-render cards if on cards tab
+            if (document.querySelector('.nav-item.active').dataset.tab === 'cards') {
+                renderCardsSection();
+            }
+        }
 
-                const cardEl = document.createElement('div');
-                cardEl.className = 'card-item p-4 rounded-xl shadow-xl mb-4 bg-slate-800';
-                cardEl.innerHTML = `
-                    <div class="flex justify-between items-start mb-3 border-b border-gray-700 pb-2">
-                        <div class="flex items-center space-x-3">
-                            <div class="text-4xl">${baseCard.logo}</div>
-                            <div>
-                                <h3 class="text-xl font-extrabold text-white">${baseCard.name} (Lvl ${card.level}/${baseCard.maxLevel})</h3>
-                                <p class="text-sm font-semibold text-indigo-400">${baseCard.party}</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-2xl font-bold text-green-400">+${(baseCard.baseBonus * card.level).toFixed(0)} T.Power</span>
-                        </div>
-                    </div>
+        // UI rendering functions
+        function updateUI() {
+            if (!coinCounter || !tokenCounter) return;
 
-                    <div class="grid grid-cols-2 gap-2 text-sm mb-4">
-                        <div class="bg-slate-700 p-2 rounded-lg">
-                            <span class="text-gray-400">Policy:</span> <span class="font-medium">${baseCard.policy}</span>
-                        </div>
-                        <div class="bg-slate-700 p-2 rounded-lg">
-                            <span class="text-gray-400">Approval:</span> <span class="font-medium text-yellow-500">${baseCard.approval}%</span>
-                        </div>
-                    </div>
+            coinCounter.textContent = formatNumber(gameState.coins);
+            tokenCounter.textContent = formatNumber(gameState.influenceTokens);
+            tapButton.innerHTML = `Tap to<br/>Fund<br/><span class="text-3xl">+${formatNumber(gameState.tapPower)}</span>`;
+            document.getElementById('tciCounter').textContent = formatNumber(gameState.totalCampaignInfluence);
+            
+            // Update Daily Goal Progress
+            const dailyProgress = document.getElementById('dailyProgress');
+            const dailyTaps = gameState.dailyTaps;
+            const today = new Date().toISOString().split('T')[0];
+            const isClaimedToday = gameState.lastDailyRewardDate === today;
+            
+            let progressPercent;
+            let currentTaps;
+
+            if (isClaimedToday) {
+                progressPercent = 100;
+                currentTaps = DAILY_GOAL;
+                document.getElementById('dailyTapsCount').textContent = `${DAILY_GOAL}/${DAILY_GOAL} (Claimed!)`;
+                document.getElementById('dailyProgress').classList.add('bg-green-500');
+                document.getElementById('dailyProgress').classList.remove('bg-blue-500');
+            } else {
+                currentTaps = dailyTaps;
+                progressPercent = Math.min(100, (currentTaps / DAILY_GOAL) * 100);
+                document.getElementById('dailyTapsCount').textContent = `${currentTaps}/${DAILY_GOAL}`;
+                document.getElementById('dailyProgress').classList.remove('bg-green-500');
+                document.getElementById('dailyProgress').classList.add('bg-blue-500');
+            }
+
+            dailyProgress.style.width = `${progressPercent}%`;
+
+            // Unclaimed Card Button Update
+            const unclaimedCount = gameState.unclaimedCards.length;
+            const cardNotif = document.getElementById('cardNotif');
+            if (unclaimedCount > 0) {
+                cardNotif.classList.remove('hidden');
+                cardNotif.textContent = unclaimedCount;
+            } else {
+                cardNotif.classList.add('hidden');
+            }
+        }
+
+        function renderCardsSection() {
+            if (!cardsContainer) return;
+            
+            let html = '';
+            
+            // Unclaimed Cards
+            if (gameState.unclaimedCards.length > 0) {
+                html += `<h3 class="text-xl font-bold text-yellow-400 mb-4">Unclaimed Candidate Cards</h3>`;
+                html += `<div class="grid grid-cols-1 gap-4 mb-8">`;
+                
+                gameState.unclaimedCards.forEach(card => {
+                    const baseCard = CANDIDATE_POOL.find(c => c.id === card.id);
+                    if (!baseCard) return;
                     
-                    ${card.level < baseCard.maxLevel ? `
-                        <div class="flex justify-between items-center pt-2">
-                            <div class="text-xs">
-                                <span class="font-bold text-gray-300">Next Upgrade:</span> Lvl ${nextLevel} 
-                                <span class="text-yellow-400">(+${baseCard.baseBonus} Power)</span><br/>
-                                <span class="font-bold text-green-300">XP to Party:</span> ${effectiveXpGain} XP ${isBoosted ? '(2X BONUS!)' : ''}
+                    html += `
+                        <div class="card-item p-4 rounded-xl ${baseCard.logoColor} border-2 border-yellow-500">
+                            <div class="flex justify-between items-center mb-2">
+                                <h4 class="font-bold text-lg">${baseCard.name}</h4>
+                                <span class="text-2xl">${baseCard.logo}</span>
                             </div>
-                            <button class="upgrade-card-btn px-4 py-2 text-sm font-bold rounded-full transition-colors ${canUpgrade ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg' : 'bg-gray-500 text-gray-200 cursor-not-allowed'}"
-                                data-unique-id="${card.uniqueId}"
-                                ${canUpgrade ? '' : 'disabled'}>
-                                UPGRADE (🪙${cost.toLocaleString()})
+                            <p class="text-sm mb-2">${baseCard.campaign}</p>
+                            <p class="text-xs mb-3">Party: ${baseCard.party}</p>
+                            <button class="claim-card-btn w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-4 rounded-lg transition" data-unique-id="${card.uniqueId}">
+                                Claim Candidate
                             </button>
                         </div>
-                    ` : `<p class="text-center text-lg font-bold text-red-400 py-2">MAX LEVEL ACHIEVED!</p>`}
-                `;
-                
-                if(card.level < baseCard.maxLevel) {
-                    cardEl.querySelector('.upgrade-card-btn').addEventListener('click', upgradeCard);
-                }
-                myCardsList.appendChild(cardEl);
-             });
-        }
-
-        // --- Navigation Logic ---
-        const tabContents = {
-            home: document.getElementById('homeSection'),
-            party: document.getElementById('partySection'),
-            cards: document.getElementById('cardsSection'),
-            boosts: document.getElementById('boostsSection'),
-            chat: document.getElementById('chatSection'),
-            rank: document.getElementById('rankSection'),
-            strategy: document.getElementById('strategySection') 
-        };
-        const navItems = document.querySelectorAll('.nav-item');
-
-        function showTab(tabName) {
-            Object.keys(tabContents).forEach(key => {
-                tabContents[key].style.display = key === tabName ? 'block' : 'none';
-            });
-
-            navItems.forEach(item => {
-                item.classList.toggle('active', item.dataset.tab === tabName);
-            });
-
-            if (tabName === 'party') renderPartySection();
-            if (tabName === 'cards') renderMyCardsTab();
-            if (tabName === 'rank') renderLeaderboard();
-            if (tabName === 'boosts') renderBoostStore();
-            
-            cardsContainer.style.display = tabName === 'home' ? 'flex' : 'none';
-        }
-
-        navItems.forEach(item => {
-            item.addEventListener('click', () => {
-                showTab(item.dataset.tab);
-            });
-        });
-
-        window.addEventListener('load', () => {
-            showTab('home');
-        });
-        
-        
-        async function claimCard(e, cardData) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const uniqueId = cardData.uniqueId;
-            const userDocRef = doc(db, "artifacts", appId, "users", userId, "data", "profile");
-
-            try {
-                await runTransaction(db, async (transaction) => {
-                    const userDoc = await transaction.get(userDocRef);
-                    if (!userDoc.exists()) throw "User profile not found.";
-
-                    const data = userDoc.data();
-                    let unclaimed = data.unclaimedCards || [];
-                    const cardToClaim = unclaimed.find(c => c.uniqueId === uniqueId);
-                    if (!cardToClaim) throw "Card not available to claim.";
-
-                    unclaimed = unclaimed.filter(c => c.uniqueId !== uniqueId);
-                    
-                    transaction.update(userDocRef, { 
-                        userCards: arrayUnion(cardToClaim),
-                        unclaimedCards: unclaimed
-                    });
-                });
-
-                showMessage(`Successfully claimed ${cardData.name}!`, 'success');
-                renderNewCards();
-            } catch (error) {
-                console.error("Claim card failed:", error);
-                showMessage(typeof error === 'string' ? error : "Failed to claim card.", 'error');
-            }
-        }
-        
-        async function purchaseBoost(boostId) {
-            if (!window.gameState.isAuthReady) return showMessage("Loading game data, please wait...", 'info');
-
-            const boost = BOOST_STORE.find(b => b.id === boostId);
-            if (!boost) return showMessage("Invalid boost ID.", 'error');
-
-            const userDocRef = doc(db, "artifacts", appId, "users", userId, "data", "profile");
-
-            try {
-                await runTransaction(db, async (transaction) => {
-                    const userDoc = await transaction.get(userDocRef);
-                    const data = userDoc.data();
-                    
-                    if (data.influenceTokens < boost.cost) throw "Not enough Influence Tokens (💎).";
-                    if (data.boostsPurchased && data.boostsPurchased.includes(boostId)) throw "Boost already purchased.";
-
-                    // Update the correct key in the state
-                    const updateData = {
-                        influenceTokens: increment(-boost.cost),
-                        boostsPurchased: arrayUnion(boostId),
-                    };
-                    
-                    // For multipliers, if the key is already 1, multiply by the effectValue.
-                    if (boost.upgradeKey === 'dropRateMultiplier' || boost.upgradeKey === 'basePowerMultiplier') {
-                         updateData[boost.upgradeKey] = (data[boost.upgradeKey] || 1) * boost.effectValue;
-                    } else if (boost.upgradeKey === 'partyMultiplierBonus') {
-                         updateData[boost.upgradeKey] = (data[boost.upgradeKey] || 1.0) + boost.effectValue;
-                    }
-
-
-                    transaction.update(userDocRef, updateData);
-                });
-
-                showMessage(`🔥 Purchased ${boost.name}! Permanent effect applied!`, 'success');
-                calculateAndSaveTCI(); 
-                renderBoostStore();
-            } catch (error) {
-                console.error("Boost purchase failed:", error);
-                showMessage(typeof error === 'string' ? error : error.message || "Purchase failed. Please try again.", 'error');
-            }
-        }
-        
-        async function upgradeParty(e) {
-            const partyId = e.currentTarget.dataset.partyId;
-            const partyData = window.gameState.parties[partyId];
-            
-            const maxLevel = 10;
-            if (!partyData || partyData.level >= maxLevel) return showMessage("This Party is at Max Level!", 'error');
-            
-            const nextLevel = partyData.level + 1;
-            const cost = nextLevel * 15000;
-            const requiredXP = nextLevel * 50;
-            
-            if (window.gameState.coins < cost) return showMessage("Need more Campaign Funds!", 'error');
-            if (partyData.xp < requiredXP) return showMessage("Need more Candidate XP from this Party.", 'error');
-
-            try {
-                await runTransaction(db, async (transaction) => {
-                    const userDocRef = doc(db, "artifacts", appId, "users", userId, "data", "profile");
-                    const partyDocRef = doc(db, "artifacts", appId, "users", userId, "data", "parties");
-
-                    transaction.update(userDocRef, { 
-                        coins: increment(-cost),
-                        totalLifetimeCoins: increment(-cost)
-                    });
-
-                    const newMultiplier = partyData.multiplier + 0.05; 
-                    transaction.update(partyDocRef, {
-                        [`${partyId}.level`]: increment(1),
-                        [`${partyId}.xp`]: increment(-requiredXP),
-                        [`${partyId}.multiplier`]: newMultiplier,
-                    });
-                });
-                showMessage(`Party ${partyData.name} Leveled Up to Lvl ${nextLevel}!`, 'success');
-                calculateAndSaveTCI();
-            } catch (error) {
-                console.error("Party upgrade failed:", error);
-                showMessage(typeof error === 'string' ? error : "Party upgrade failed. Please try again.", 'error');
-            }
-        }
-
-        async function renderLeaderboard() {
-            const leaderboardList = document.getElementById('leaderboardList');
-            leaderboardList.innerHTML = '<p class="text-center text-gray-400">Loading Top Influencers...</p>';
-            
-            const publicCollectionRef = collection(db, "artifacts", appId, "public/data/leaderboard");
-            
-            try {
-                // Fetch all documents and sort client-side due to orderBy complexity
-                const querySnapshot = await getDocs(publicCollectionRef);
-                
-                let influencers = [];
-                querySnapshot.forEach(doc => {
-                    influencers.push(doc.data());
-                });
-                
-                // Sort by TCI descending
-                influencers.sort((a, b) => b.tci - a.tci);
-
-                leaderboardList.innerHTML = '';
-                influencers.slice(0, 50).forEach((influencer, index) => {
-                    const rank = index + 1;
-                    const isCurrentUser = influencer.uid === userId;
-                    
-                    const item = document.createElement('div');
-                    item.className = `p-3 rounded-xl shadow-lg flex justify-between items-center mb-2 font-mono ${isCurrentUser ? 'bg-yellow-700 text-gray-900 font-bold border-2 border-yellow-300' : 'bg-slate-700'}`;
-                    
-                    item.innerHTML = `
-                        <div class="flex items-center space-x-3">
-                            <span class="text-xl font-bold w-6 text-center ${rank <= 3 ? 'text-red-400' : 'text-gray-200'}">${rank}.</span>
-                            <span class="text-sm font-semibold truncate">${isCurrentUser ? 'YOU (The Strategist)' : influencer.username}</span>
-                        </div>
-                        <span class="text-base font-bold text-blue-300">${influencer.tci.toLocaleString()} TCI</span>
                     `;
-                    leaderboardList.appendChild(item);
                 });
-
-            } catch (error) {
-                console.error("Error fetching leaderboard:", error);
-                leaderboardList.innerHTML = '<p class="text-center text-red-400">Failed to load leaderboard.</p>';
+                
+                html += `</div>`;
             }
+            
+            // Owned Cards
+            html += `<h3 class="text-xl font-bold text-green-400 mb-4">Your Campaign Team</h3>`;
+            if (gameState.userCards.length === 0) {
+                html += `<p class="text-center text-gray-400 py-8">No cards yet. Tap to earn candidate cards!</p>`;
+            } else {
+                html += `<div class="grid grid-cols-1 gap-4">`;
+                
+                gameState.userCards.forEach(card => {
+                    const baseCard = CANDIDATE_POOL.find(c => c.id === card.id);
+                    if (!baseCard) return;
+                    
+                    const isMaxLevel = card.level >= baseCard.maxLevel;
+                    const upgradeCost = isMaxLevel ? 'MAX' : formatNumber((card.level + 1) * 1000 + (baseCard.bid / 100));
+                    const upgradeText = isMaxLevel ? 'MAX LEVEL' : `Upgrade (${upgradeCost} 💰)`;
+                    
+                    html += `
+                        <div class="card-item p-4 rounded-xl ${baseCard.logoColor}">
+                            <div class="flex justify-between items-center mb-2">
+                                <h4 class="font-bold text-lg">${baseCard.name}</h4>
+                                <span class="text-2xl">${baseCard.logo}</span>
+                            </div>
+                            <p class="text-sm mb-2">${baseCard.campaign}</p>
+                            <p class="text-xs mb-1">Party: ${baseCard.party}</p>
+                            <p class="text-xs mb-1">Approval: ${baseCard.approval}%</p>
+                            <p class="text-xs mb-3">Policy: ${baseCard.policy}</p>
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold">Level ${card.level}/${baseCard.maxLevel}</span>
+                                <span class="font-bold">+${baseCard.baseBonus * card.level} Power</span>
+                            </div>
+                            <button class="upgrade-card-btn w-full mt-3 ${isMaxLevel ? 'bg-gray-500 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'} text-white font-bold py-2 px-4 rounded-lg transition" 
+                                data-unique-id="${card.uniqueId}" ${isMaxLevel ? 'disabled' : ''}>
+                                ${upgradeText}
+                            </button>
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            }
+            
+            cardsContainer.innerHTML = html;
+            
+            // Add event listeners
+            document.querySelectorAll('.claim-card-btn').forEach(btn => {
+                btn.addEventListener('click', claimCard);
+            });
+            
+            document.querySelectorAll('.upgrade-card-btn').forEach(btn => {
+                if (!btn.disabled) {
+                    btn.addEventListener('click', upgradeCard);
+                }
+            });
         }
 
         function renderPartySection() {
-            const partiesList = document.getElementById('partiesList');
-            partiesList.innerHTML = '';
+            const partyContainer = document.getElementById('partyContainer');
+            if (!partyContainer) return;
             
-            Object.keys(window.gameState.parties).forEach(partyId => {
-                const party = window.gameState.parties[partyId];
-                const nextLevel = party.level + 1;
-                const cost = nextLevel * 15000;
-                const requiredXP = nextLevel * 50;
-                const maxLevel = 10;
-
-                const canUpgrade = window.gameState.coins >= cost && party.xp >= requiredXP && party.level < maxLevel;
-
-                const partyCard = document.createElement('div');
-                partyCard.className = `party-card p-4 rounded-xl shadow-xl transition-all mb-4 flex items-center justify-between ${party.color} bg-opacity-70`;
-                
-                partyCard.innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <div class="text-3xl">${party.logo}</div>
-                        <div>
-                            <div class="text-xl font-bold">${party.name} (Lvl ${party.level})</div>
-                            <div class="text-sm font-semibold text-gray-200">Current Multiplier: ${(party.multiplier * 100).toFixed(0)}%</div>
-                            <div class="text-xs text-gray-300">XP: ${party.xp}/${requiredXP}</div>
+            let html = `
+                <h3 class="text-xl font-bold text-blue-400 mb-4">Political Parties</h3>
+                <div class="grid grid-cols-1 gap-4">
+            `;
+            
+            Object.entries(gameState.parties).forEach(([partyId, party]) => {
+                html += `
+                    <div class="card-item p-4 rounded-xl ${party.color}">
+                        <div class="flex justify-between items-center mb-3">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-3">${party.logo}</span>
+                                <div>
+                                    <h4 class="font-bold text-lg">${party.name}</h4>
+                                    <p class="text-sm">Level ${party.level} • Multiplier: ${party.multiplier.toFixed(2)}x</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <button class="upgrade-party-btn px-3 py-1 text-sm font-bold rounded-full transition-colors ${canUpgrade ? 'bg-indigo-400 text-gray-900 hover:bg-indigo-300' : 'bg-gray-500 text-gray-200 cursor-not-allowed'}"
-                            data-party-id="${partyId}"
-                            ${canUpgrade ? '' : 'disabled'}>
-                            ${party.level >= maxLevel ? 'MAXED' : `LEVEL UP (🪙${cost.toLocaleString()})`}
-                        </button>
-                    </div>
                 `;
-                partyCard.querySelector('.upgrade-party-btn').addEventListener('click', upgradeParty);
-                partiesList.appendChild(partyCard);
             });
-        }
-        
-        function renderBoostStore() {
-            const boostsList = document.getElementById('boostsList');
-            boostsList.innerHTML = '';
             
-            BOOST_STORE.forEach(boost => {
-                const isPurchased = window.gameState.boostsPurchased.includes(boost.id);
-                const canPurchase = window.gameState.influenceTokens >= boost.cost && !isPurchased;
-
-                const boostCard = document.createElement('div');
-                boostCard.className = `card-item p-4 rounded-xl shadow-xl transition-all mb-4 flex items-center justify-between ${isPurchased ? 'bg-green-800 bg-opacity-50 border-green-500' : 'bg-slate-700'}`;
-                
-                boostCard.innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <div class="text-3xl">${boost.icon}</div>
-                        <div>
-                            <div class="text-xl font-bold">${boost.name}</div>
-                            <div class="text-sm text-gray-300">${boost.effect}</div>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <button class="purchase-boost-btn px-4 py-2 text-sm font-bold rounded-full transition-colors ${canPurchase ? 'bg-purple-500 hover:bg-purple-400 text-white' : 'bg-gray-500 text-gray-200 cursor-not-allowed'}"
-                            data-boost-id="${boost.id}"
-                            ${isPurchased || !canPurchase ? 'disabled' : ''}>
-                            ${isPurchased ? 'PURCHASED' : `BUY (💎${boost.cost})`}
-                        </button>
-                    </div>
-                `;
-                boostCard.querySelector('.purchase-boost-btn').addEventListener('click', (e) => purchaseBoost(e.currentTarget.dataset.boostId));
-                boostsList.appendChild(boostCard);
-            });
+            html += `</div>`;
+            partyContainer.innerHTML = html;
         }
 
+        function renderStoreSection() {
+            const storeContainer = document.getElementById('storeContainer');
+            if (!storeContainer) return;
+            
+            let html = `
+                <h3 class="text-xl font-bold text-purple-400 mb-4">Local Storage Notice</h3>
+                <div class="card-item p-4 rounded-xl border-2 border-purple-500">
+                    <p class="text-sm mb-3">This game is running in offline mode. Your progress is saved to your browser's local storage.</p>
+                    <p class="text-sm">To enable cloud saving and multiplayer features, configure Firebase in the script.</p>
+                </div>
+            `;
+            
+            storeContainer.innerHTML = html;
+        }
+
+        function renderLeaderboardSection() {
+            const leaderboardContainer = document.getElementById('leaderboardContainer');
+            if (!leaderboardContainer) return;
+            
+            let html = `
+                <h3 class="text-xl font-bold text-yellow-400 mb-4">Local Game</h3>
+                <div class="card-item p-4 rounded-xl border-2 border-yellow-500">
+                    <p class="text-sm mb-3">Leaderboard features require Firebase configuration.</p>
+                    <p class="text-sm">Your current Total Campaign Influence: <span class="font-bold">${formatNumber(gameState.totalCampaignInfluence)}</span></p>
+                </div>
+            `;
+            
+            leaderboardContainer.innerHTML = html;
+        }
+
+        // Navigation
+        function navigate(tabId) {
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(tabId).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+            
+            // Trigger render functions for non-main tabs
+            if (tabId === 'cards') renderCardsSection();
+            if (tabId === 'party') renderPartySection();
+            if (tabId === 'store') renderStoreSection();
+            if (tabId === 'leaderboard') renderLeaderboardSection();
+        }
+
+        // Save/load game state
+        function saveGameState() {
+            localStorage.setItem('campaignSimulator_save', JSON.stringify(gameState));
+        }
+
+        function loadGameState() {
+            const saved = localStorage.getItem('campaignSimulator_save');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    gameState = {...gameState, ...parsed};
+                    
+                    // Ensure parties data is properly initialized
+                    if (!gameState.parties || Object.keys(gameState.parties).length === 0) {
+                        gameState.parties = {...INITIAL_PARTY_DATA};
+                    }
+                    
+                    // Recalculate derived values
+                    gameState.cardBonusSum = gameState.userCards.reduce((sum, card) => {
+                        const baseCard = CANDIDATE_POOL.find(c => c.id === card.id);
+                        return baseCard ? sum + (baseCard.baseBonus * card.level) : sum;
+                    }, 0);
+                    
+                    gameState.tapPower = Math.ceil((1 * gameState.basePowerMultiplier + gameState.cardBonusSum) * gameState.partyMultiplier);
+                    
+                } catch (e) {
+                    console.error("Error loading saved game:", e);
+                }
+            }
+        }
+
+        // Initialize the game
+        document.addEventListener('DOMContentLoaded', () => {
+            coinCounter = document.getElementById('coinCounter');
+            tokenCounter = document.getElementById('tokenCounter');
+            tapButton = document.getElementById('tapButton'); 
+            cardsContainer = document.getElementById('cardsContainer');
+            loadingIndicator = document.getElementById('loadingIndicator');
+            messageBox = document.getElementById('messageBox');
+            
+            // Load saved game
+            loadGameState();
+            
+            // Set up navigation
+            navigate('tap');
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', (e) => navigate(e.currentTarget.dataset.tab));
+            });
+
+            // Set up tap button
+            tapButton.addEventListener('click', handleTap);
+            
+            // Hide loading indicator
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'none';
+            }
+            
+            // Initial UI update
+            updateUI();
+            
+            showMessage("Game loaded successfully! Tap to start earning funds.", 'success');
+        });
     </script>
-</head>
-<body class="p-4 flex flex-col items-center">
-
-    <!-- Loading Indicator -->
-    <div id="loadingIndicator" style="display: none;" class="fixed inset-0 bg-slate-900 bg-opacity-90 flex flex-col items-center justify-center z-50">
-        <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-500"></div>
-        <p class="mt-4 text-white font-semibold text-lg">Initializing Strategic Command...</p>
-    </div>
-
-    <!-- Message Box (Instead of Alert) -->
-    <div id="messageBox" style="display: none;" class="hidden"></div>
-    
-    <!-- User ID Display -->
-    <div id="userIdDisplay" class="text-xs text-gray-400 mb-2 w-full max-w-lg text-center truncate"></div>
-
-    <!-- Header Section -->
-    <div id="header" class="w-full max-w-lg text-center mb-4">
-        <div class="grid grid-cols-2 gap-2 items-center bg-slate-800 p-3 rounded-xl shadow-2xl mb-2">
-            <h1 id="coinCounter" class="text-xl sm:text-2xl font-extrabold text-yellow-400 leading-none text-left">
-                🪙 Funds: 0
-            </h1>
-            <h1 id="tokenCounter" class="text-xl sm:text-2xl font-extrabold text-purple-400 leading-none text-right">
-                💎 Tokens: 0
-            </h1>
-        </div>
-        
-        <div class="bg-slate-700 p-2 rounded-xl shadow-inner mt-2">
-            <p id="tapPowerDisplay" class="text-lg font-bold text-green-400 mb-1">
-                Tap Power: 1 (x0% Global)
-            </p>
-            <p id="tciDisplay" class="text-base font-extrabold text-red-400">
-                TCI: 0
-            </p>
-        </div>
-    </div>
-
-    <!-- Daily Boost Banner -->
-    <div id="dailyBoostBanner" class="w-full max-w-lg text-center p-3 mb-4 rounded-xl bg-orange-800 shadow-2xl animate-pulse text-sm">
-        <!-- Daily Boost content rendered here -->
-    </div>
-
-
-    <!-- Home/Tapping Section -->
-    <div id="homeSection" class="w-full max-w-lg flex flex-col items-center">
-        <h2 class="text-2xl font-extrabold text-white mb-4 uppercase tracking-widest">Generate Influence</h2>
-        <button id="tapButton" class="rounded-full flex items-center justify-center mb-8 relative overflow-hidden">
-            VOTE
-        </button>
-
-        <p id="dailyReward" class="text-sm font-semibold text-indigo-300 mb-2">Goal: 0/100 taps</p>
-        <div class="w-full max-w-xs h-3 bg-gray-700 rounded-full overflow-hidden mb-4 shadow-inner">
-            <div id="progressBar" class="h-full bg-gradient-to-r from-blue-400 to-indigo-500 transition-all duration-300" style="width: 0%;"></div>
-        </div>
-
-        <h2 class="text-xl font-bold text-gray-200 mb-3 w-full max-w-md text-center border-b border-gray-700 pb-2">New Candidate Recruitment</h2>
-        <div id="cardsContainer" class="flex flex-wrap justify-center w-full max-w-md min-h-[80px]">
-            <!-- Unclaimed cards drop here -->
-        </div>
-    </div>
-    
-    <!-- Party Strategy Section -->
-    <div id="partySection" class="w-full max-w-lg p-4" style="display: none;">
-        <h2 class="text-2xl font-bold mb-4 text-center text-indigo-400">Political Party Strategy</h2>
-        <p class="text-sm text-center text-gray-400 mb-6">Invest to gain **+5% permanent global tap multipliers** and boost your TCI.</p>
-        <div id="partiesList" class="space-y-4">
-            <!-- Party cards rendered here -->
-        </div>
-    </div>
-
-    <!-- Cards Section -->
-    <div id="cardsSection" class="w-full max-w-lg p-4" style="display: none;">
-        <h2 class="text-2xl font-bold mb-4 text-center text-yellow-400">Candidate Card Management</h2>
-        <p class="text-sm text-center text-gray-400 mb-6">Upgrade Cards with 🪙 to increase your base Tap Power and grant Party XP!</p>
-        <div id="myCardsList">
-            <!-- My collected, upgradable cards rendered here -->
-        </div>
-    </div>
-
-    <!-- Boosts Section (Token Store) -->
-    <div id="boostsSection" class="w-full max-w-lg p-4" style="display: none;">
-        <h2 class="text-2xl font-bold mb-4 text-center text-purple-400">Influence Token Boosts (Permanent)</h2>
-        <p class="text-sm text-center text-gray-400 mb-6">Spend rare **💎 Influence Tokens** to purchase permanent, game-changing upgrades for maximum strategic advantage.</p>
-        <div id="boostsList" class="space-y-4">
-            <!-- Boost cards rendered here -->
-        </div>
-    </div>
-    
-    <!-- NEW: Chat Section -->
-    <div id="chatSection" class="w-full max-w-lg p-4" style="display: none;">
-        <h2 class="text-2xl font-bold mb-4 text-center text-green-400">Global War Room Chat</h2>
-        <div id="chatContent" class="mb-4">
-            <!-- Messages rendered here -->
-        </div>
-        <div class="flex space-x-2">
-            <input type="text" id="chatInput" placeholder="Send a strategic update..." class="flex-grow p-3 rounded-xl bg-slate-700 text-white border border-slate-600 focus:outline-none focus:ring-2 focus:ring-green-500" maxlength="150">
-            <button id="chatSendButton" class="bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send-horizontal"><path d="m3 3 3 9-3 9 19-9Z"/><path d="M6 12h16"/></svg>
-            </button>
-        </div>
-    </div>
-
-    <!-- Rank Section -->
-    <div id="rankSection" class="w-full max-w-lg p-4" style="display: none;">
-        <h2 class="text-2xl font-bold mb-4 text-center text-red-400">Global TCI Leaderboard</h2>
-        <p class="text-sm text-center text-gray-400 mb-4">Compete based on **Total Campaign Influence (TCI)**. Top players win the **Grand Prize**!</p>
-        <div id="leaderboardList">
-            <!-- Leaderboard items rendered here -->
-        </div>
-    </div>
-
-    <!-- Strategy Section (Renamed from Rules) -->
-    <div id="strategySection" class="w-full max-w-lg p-4" style="display: none;">
-        <h2 class="text-2xl font-bold mb-4 text-center text-green-400">Game Strategy & Rules</h2>
-        <div class="bg-slate-700 p-5 rounded-xl space-y-4 shadow-lg">
-            <h3 class="text-xl font-bold text-white">1. Core Resource: Campaign Funds (🪙)</h3>
-            <p class="text-sm text-gray-200">Earned by tapping. Essential for **upgrading Cards and Parties**.</p>
-
-            <h3 class="text-xl font-bold text-white">2. Rare Resource: Influence Tokens (💎)</h3>
-            <p class="text-sm text-gray-200">Earned once daily by hitting the **Daily Influence Goal**. Spend them wisely in the **Boosts** tab for permanent, non-refundable strategic advantages!</p>
-
-            <h3 class="text-xl font-bold text-white">3. Competition: Total Campaign Influence (TCI)</h3>
-            <p class="text-sm text-gray-200">The primary metric for the Leaderboard. Focus on maximizing all three components:</p>
-            <ul class="list-disc list-inside text-sm text-gray-300 ml-4">
-                <li>**Funds:** Every $\frac{10,000}{TCI\_SCALING.COINS}$ Funds earned = $+1$ TCI.</li>
-                <li>**Card Strategy:** Every Card Level = $+10$ TCI.</li>
-                <li>**Party Strategy:** Every Party Level = $+50$ TCI (Highest value for long-term commitment).</li>
-            </ul>
-            
-            <h3 class="text-xl font-bold text-white">4. Daily Strategy (Bonus XP)</h3>
-            <p class="text-sm text-gray-200">Check the **Home** tab banner daily! A random party is selected to grant **2X Party XP** when you upgrade their Candidate Cards. Optimize your upgrades to match the daily boost!</p>
-        </div>
-    </div>
-
-
-    <!-- Navigation Bar (Fixed Bottom) -->
-    <div class="nav-bar fixed bottom-0 left-0 right-0 h-16 flex justify-around items-center z-40 rounded-t-xl">
-        <div class="nav-item flex flex-col items-center justify-center p-1 w-1/7 transition-colors rounded-t-xl active" data-tab="home">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-zap"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            <span class="text-xs mt-1">Tap</span>
-        </div>
-        <div class="nav-item flex flex-col items-center justify-center p-1 w-1/7 transition-colors rounded-t-xl" data-tab="party">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-half"><path d="M12 21a8 8 0 0 0 8-8V5l-8-3-8 3v8a8 8 0 0 0 8 8z"/><path d="M12 21V3"/></svg>
-            <span class="text-xs mt-1">Parties</span>
-        </div>
-        <div class="nav-item flex flex-col items-center justify-center p-1 w-1/7 transition-colors rounded-t-xl" data-tab="cards">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            <span class="text-xs mt-1">Cards</span>
-        </div>
-        <div class="nav-item flex flex-col items-center justify-center p-1 w-1/7 transition-colors rounded-t-xl" data-tab="boosts">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-infinity"><path d="M12 12C9 15 5 17 2 17"/><path d="M12 12C15 9 19 7 22 7"/><path d="M12 12c-3-3-7-5-10-5"/><path d="M12 12c3 3 7 5 10 5"/></svg>
-            <span class="text-xs mt-1">Boosts</span>
-        </div>
-        <div class="nav-item flex flex-col items-center justify-center p-1 w-1/7 transition-colors rounded-t-xl" data-tab="chat">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
-            <span class="text-xs mt-1">Chat</span>
-        </div>
-        <div class="nav-item flex flex-col items-center justify-center p-1 w-1/7 transition-colors rounded-t-xl" data-tab="rank">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-medal"><path d="m12 18-3-1-6 2"/><path d="m12 18 3-1 6 2"/><path d="M12 2V6h10V2"/><path d="M12 6h10"/><path d="M12 6v14"/><path d="M2 12V6h10v6"/><path d="M12 12h10"/><circle cx="12" cy="12" r="3"/></svg>
-            <span class="text-xs mt-1">Rank</span>
-        </div>
-        <div class="nav-item flex flex-col items-center justify-center p-1 w-1/7 transition-colors rounded-t-xl" data-tab="strategy">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open-text"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/><path d="M6 8h2"/><path d="M6 12h2"/><path d="M16 8h2"/><path d="M16 12h2"/></svg>
-            <span class="text-xs mt-1">Strategy</span>
-        </div>
-    </div>
 </body>
 </html>
