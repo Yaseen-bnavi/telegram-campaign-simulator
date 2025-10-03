@@ -460,7 +460,7 @@
                 logo: '💰',
                 specialAbility: "Critical Tap: 5% chance for 3x coins",
                 abilityType: "critical",
-                photo: "https://github.com/Yaseen-bnavi/telegram-campaign-simulator/blob/main/public/assets/candidates/photos/c1-mustafa-alabadi.jpg",
+                photo: "/assets/candidates/photos/c1-mustafa-alabadi.jpg",
                 promoVideo: "https://www.youtube.com/embed/dQw4w9WgXcQ",
                 videoReward: 5000,
                 socialLinks: {
@@ -1591,9 +1591,11 @@
                 
                 html += `
                     <div class="media-card bg-slate-800 p-4 rounded-lg text-center">
-                        <div class="candidate-photo mx-auto mb-2 border-2 ${candidate.logoColor.replace('text', 'border')} flex items-center justify-center bg-slate-700">
-                            <span class="text-2xl">${candidate.logo}</span>
-                        </div>
+                        <img src="${candidate.photo}" 
+     alt="${candidate.name}" 
+     class="candidate-photo mx-auto mb-2 border-2 ${candidate.logoColor.replace('text', 'border')}" 
+     onerror="this.src='/assets/candidates/photos/placeholder.jpg'" />
+
                         <h4 class="font-bold text-sm mb-1">${candidate.name.split('(')[0].trim()}</h4>
                         <p class="text-xs text-gray-400 mb-2">${candidate.party.split('(')[0].trim()}</p>
                         <p class="text-xs text-gray-300 mb-3">${candidate.campaign}</p>
